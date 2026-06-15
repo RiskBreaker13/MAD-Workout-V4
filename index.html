@@ -747,6 +747,9 @@
   </div>
 
   <div id="streakBar"></div>
+  <div style="text-align:right;margin-bottom:4px">
+    <button onclick="showQuote()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:4px 0">💬 Quote of the day</button>
+  </div>
   <div id="workoutContent"></div>
 </div>
 
@@ -1423,6 +1426,14 @@ function dismissSplash() {
   state.lastQuoteDate = new Date().toISOString().slice(0, 10);
   saveState();
   document.getElementById('splash').style.display = 'none';
+}
+
+function showQuote() {
+  const idx = Math.floor(new Date().getTime() / 86400000) % QUOTES.length;
+  const q   = QUOTES[idx];
+  document.getElementById('splashQuote').textContent  = `"${q.text}"`;
+  document.getElementById('splashAuthor').textContent = `— ${q.author}`;
+  document.getElementById('splash').style.display     = 'flex';
 }
 
 // ─── STREAK ──────────────────────────────────────────────────────────────────
