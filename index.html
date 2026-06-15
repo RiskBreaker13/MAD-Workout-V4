@@ -1498,32 +1498,33 @@ function renderHistory() {
     return;
   }
 
-  const startDow  = (startDate.getDay() + 6) % 7; // JS Sun=0 → Mon=0 system
-  const todayMs   = new Date().setHours(0,0,0,0);
+  // startDow: 0=Mon…6=Sun matching our DAY_NAMES convention
+  const startDow = (startDate.getDay() + 6) % 7;
+  const todayMs  = new Date().setHours(0, 0, 0, 0);
 
-  // "Today" position based purely on start date, not on state.week/day
-  const todayWD   = calcWeekAndDay(state.programStart);
-  const todayWeek = todayWD ? todayWD.week : state.week;
-  const todayDay  = todayWD ? todayWD.day  : state.day;
+  // Column headers rotate to start on the program's start day
+  const colHeaders = Array.from({length: 7}, (_, c) => DAYS[(startDow + c) % 7]);
 
   html += `<div class="card">
     <div class="card-title">60-Day Program · started ${startDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-    <div class="cal-header">${DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('')}</div>
+    <div class="cal-header">${colHeaders.map(d => `<div class="cal-day-label">${d}</div>`).join('')}</div>
     <div class="cal-grid">`;
 
   for (let w = 1; w <= 10; w++) {
-    for (let d = 0; d < 7; d++) {
-      const isRest = d === 3;
-      const phase  = getPhase(w);
-      const exs    = WORKOUTS[d]?.[phase.key] || [];
-
-      const offset   = (w - 1) * 7 + ((d - startDow + 7) % 7);
-      const cellDate = new Date(startDate);
+    for (let c = 0; c < 7; c++) {
+      // c = sequential column (0 = start day of program week)
+      // dayOfWeek = actual Mon=0…Sun=6 index for workout lookup
+      const dayOfWeek = (startDow + c) % 7;
+      const offset    = (w - 1) * 7 + c;       // sequential program day number
+      const cellDate  = new Date(startDate);
       cellDate.setDate(cellDate.getDate() + offset);
-      const cellMs   = cellDate.setHours(0,0,0,0);
-      const isFuture = cellMs > todayMs;
-      const isCurrent = w === todayWeek && d === todayDay;
+      const cellMs    = cellDate.setHours(0, 0, 0, 0);
+      const isFuture  = cellMs > todayMs;
+      const isCurrent = cellMs === todayMs;
+      const isRest    = dayOfWeek === 3;
       const dateLabel = cellDate.getDate().toString();
+      const phase     = getPhase(w);
+      const exs       = WORKOUTS[dayOfWeek]?.[phase.key] || [];
 
       let cls   = 'cal-cell';
       let inner = `<div style="font-size:11px;font-weight:700">${dateLabel}</div><div class="cal-cell-week">W${w}</div>`;
@@ -1535,13 +1536,16 @@ function renderHistory() {
         cls += ' future';
       } else {
         const total = exs.length;
-        const done  = exs.filter((_, ei) => state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]).length;
+        const done  = exs.filter((_, ei) =>
+          state.completedSets[`${w}-${dayOfWeek}-${ei}-0`] ||
+          state.skippedSets[`${w}-${dayOfWeek}-${ei}-0`]
+        ).length;
         if (total > 0 && done === total) cls += ' complete';
         else if (done > 0)               cls += ' partial';
       }
       if (isCurrent) cls += ' current';
 
-      html += `<div class="${cls}" onclick="${isRest || isFuture ? '' : `jumpToDay(${w},${d})`}">${inner}</div>`;
+      html += `<div class="${cls}" onclick="${isRest || isFuture ? '' : `jumpToDay(${w},${dayOfWeek})`}">${inner}</div>`;
     }
   }
 
