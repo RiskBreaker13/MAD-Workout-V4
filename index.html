@@ -1474,8 +1474,13 @@ function renderHistory() {
     </div>
   </div>`;
 
+  // Build start-date anchor for date-aware calendar
+  const startDate = state.programStart ? new Date(state.programStart + 'T00:00:00') : null;
+  const startDow  = startDate ? (startDate.getDay() + 6) % 7 : 0; // JS Sun=0 → Mon=0 system
+  const todayMs   = new Date().setHours(0,0,0,0);
+
   html += `<div class="card">
-    <div class="card-title">60-Day Program</div>
+    <div class="card-title">60-Day Program${startDate ? ` · started ${startDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : ''}</div>
     <div class="cal-header">${DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('')}</div>
     <div class="cal-grid">`;
 
@@ -1483,27 +1488,39 @@ function renderHistory() {
     for (let d = 0; d < 7; d++) {
       const isRest    = d === 3;
       const isCurrent = w === state.week && d === state.day;
-      const isFuture  = w > state.week || (w === state.week && d > state.day);
       const phase     = getPhase(w);
       const exs       = WORKOUTS[d]?.[phase.key] || [];
 
-      let cls = 'cal-cell';
-      let inner = `<div>${DAYS[d][0]}</div><div class="cal-cell-week">W${w}</div>`;
+      // Date-aware past/future: offset from start = (w-1)*7 + ((d - startDow + 7) % 7)
+      let isFuture = false;
+      let dateLabel = '';
+      if (startDate) {
+        const offset   = (w - 1) * 7 + ((d - startDow + 7) % 7);
+        const cellDate = new Date(startDate);
+        cellDate.setDate(cellDate.getDate() + offset);
+        isFuture   = cellDate.getTime() > todayMs;
+        dateLabel  = cellDate.getDate().toString();
+      } else {
+        isFuture = w > state.week || (w === state.week && d > state.day);
+      }
+
+      let cls   = 'cal-cell';
+      let inner = `<div style="font-size:11px;font-weight:700">${dateLabel || DAYS[d][0]}</div><div class="cal-cell-week">W${w}</div>`;
 
       if (isRest) {
-        cls += ' rest-day';
-        inner = `<div>😴</div>`;
+        cls  += ' rest-day';
+        inner = `<div style="font-size:14px">😴</div>`;
       } else if (isFuture) {
         cls += ' future';
       } else {
-        const total    = exs.length;
-        const done     = exs.filter((_, ei) => state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]).length;
+        const total = exs.length;
+        const done  = exs.filter((_, ei) => state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]).length;
         if (total > 0 && done === total) cls += ' complete';
-        else if (done > 0)              cls += ' partial';
+        else if (done > 0)               cls += ' partial';
       }
       if (isCurrent) cls += ' current';
 
-      html += `<div class="${cls}" onclick="jumpToDay(${w},${d})">${inner}</div>`;
+      html += `<div class="${cls}" onclick="${isRest || isFuture ? '' : `jumpToDay(${w},${d})`}">${inner}</div>`;
     }
   }
 
