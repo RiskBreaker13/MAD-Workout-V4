@@ -603,9 +603,110 @@
     cursor: pointer;
     margin-top: 16px;
   }
+
+  /* ── Splash ── */
+  .splash {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px 28px;
+    text-align: center;
+  }
+  .splash-logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 48px; }
+  .splash-logo span { color: var(--accent); }
+  .splash-quote { font-size: 22px; font-weight: 700; line-height: 1.4; color: var(--text); margin-bottom: 16px; }
+  .splash-author { font-size: 13px; color: var(--muted); margin-bottom: 52px; }
+  .splash-btn {
+    background: var(--accent); color: #000;
+    font-size: 16px; font-weight: 700;
+    border: none; border-radius: var(--radius);
+    padding: 16px 40px; cursor: pointer;
+    width: 100%; max-width: 320px;
+  }
+
+  /* ── Streak ── */
+  .streak-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(232,200,74,0.08);
+    border: 1px solid rgba(232,200,74,0.25);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+  .streak-num { font-size: 28px; font-weight: 800; color: var(--accent); }
+  .streak-label { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .streak-icon { font-size: 36px; }
+
+  /* ── History Calendar ── */
+  .cal-header {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; margin-bottom: 6px;
+  }
+  .cal-day-label { text-align: center; font-size: 10px; font-weight: 700; color: var(--muted); padding: 4px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border);
+    background: var(--surface2); color: var(--muted);
+    transition: transform 0.1s;
+  }
+  .cal-cell:active { transform: scale(0.92); }
+  .cal-cell.complete { background: rgba(76,175,125,0.25); border-color: var(--green); color: var(--green); }
+  .cal-cell.partial  { background: rgba(232,200,74,0.15); border-color: var(--accent); color: var(--accent); }
+  .cal-cell.current  { border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 2px rgba(232,200,74,0.3); }
+  .cal-cell.rest-day { opacity: 0.3; cursor: default; }
+  .cal-cell.future   { opacity: 0.2; cursor: default; }
+  .cal-cell-week { font-size: 8px; color: inherit; opacity: 0.7; }
+
+  /* ── PR badge ── */
+  .pr-badge {
+    font-size: 10px; font-weight: 700;
+    background: rgba(232,200,74,0.2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 1px 5px;
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── RPE ── */
+  .rpe-row {
+    display: flex; gap: 5px; flex-wrap: nowrap;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  .rpe-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .rpe-btn.selected { color: #000; border-color: transparent; }
 </style>
 </head>
 <body>
+
+<!-- Splash -->
+<div class="splash" id="splash" style="display:none">
+  <div class="splash-logo">MAD <span>TRACKER</span></div>
+  <div class="splash-quote" id="splashQuote"></div>
+  <div class="splash-author" id="splashAuthor"></div>
+  <button class="splash-btn" onclick="dismissSplash()">Start Training →</button>
+</div>
 
 <div class="install-banner" id="installBanner" style="display:none">
   <div class="install-banner-text">📲 <strong>Add to Home Screen</strong> for quick access — tap Share (□↑) then "Add to Home Screen"</div>
@@ -645,6 +746,7 @@
     <div class="day-grid" id="dayGrid"></div>
   </div>
 
+  <div id="streakBar"></div>
   <div id="workoutContent"></div>
 </div>
 
@@ -851,6 +953,11 @@
   </div>
 </div>
 
+<!-- History Screen -->
+<div class="screen" id="screen-history">
+  <div id="historyContent"></div>
+</div>
+
 <!-- Nav -->
 <nav class="nav">
   <button class="nav-btn active" onclick="showScreen('today', this)">
@@ -864,6 +971,10 @@
   <button class="nav-btn" onclick="showScreen('schedule', this)">
     <div class="nav-icon">📅</div>
     Schedule
+  </button>
+  <button class="nav-btn" onclick="showScreen('history', this)">
+    <div class="nav-icon">📆</div>
+    History
   </button>
   <button class="nav-btn" onclick="showScreen('settings', this)">
     <div class="nav-icon">⚙️</div>
@@ -887,6 +998,41 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── QUOTES ──────────────────────────────────────────────────────────────────
+
+const QUOTES = [
+  { text: "The only bad workout is the one that didn't happen.", author: "Unknown" },
+  { text: "Discipline is doing what needs to be done, even when you don't want to.", author: "Unknown" },
+  { text: "Don't wish for it. Work for it.", author: "Unknown" },
+  { text: "The pain you feel today will be the strength you feel tomorrow.", author: "Unknown" },
+  { text: "A champion is someone who gets up when they can't.", author: "Jack Dempsey" },
+  { text: "Your body can stand almost anything. It's your mind you have to convince.", author: "Unknown" },
+  { text: "The hard days are the best days because that's when champions are made.", author: "Gabby Douglas" },
+  { text: "Sweat is just fat crying.", author: "Unknown" },
+  { text: "Push harder than yesterday if you want a different tomorrow.", author: "Unknown" },
+  { text: "You don't find willpower. You create it.", author: "Unknown" },
+  { text: "It never gets easier. You just get stronger.", author: "Unknown" },
+  { text: "Every rep, every set, every mile — it all adds up.", author: "Unknown" },
+  { text: "Mental toughness is doing what you're supposed to do when you don't feel like doing it.", author: "Unknown" },
+  { text: "One more rep. One more mile. One more day.", author: "Unknown" },
+  { text: "Suffer now and live the rest of your life as a champion.", author: "Muhammad Ali" },
+  { text: "The difference between the impossible and the possible lies in a person's determination.", author: "Tommy Lasorda" },
+  { text: "If it doesn't challenge you, it doesn't change you.", author: "Fred DeVito" },
+  { text: "Don't stop when it hurts. Stop when you're done.", author: "Unknown" },
+  { text: "Strength does not come from physical capacity. It comes from an indomitable will.", author: "Mahatma Gandhi" },
+  { text: "You are what you repeatedly do. Excellence is not an event — it's a habit.", author: "Aristotle" },
+  { text: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+  { text: "No matter how slow you go, you're still lapping everyone on the couch.", author: "Unknown" },
+  { text: "Train insane or remain the same.", author: "Unknown" },
+  { text: "The only person you should try to be better than is who you were yesterday.", author: "Unknown" },
+  { text: "Fall down seven times, get up eight.", author: "Japanese Proverb" },
+  { text: "You have to expect things of yourself before you can do them.", author: "Michael Jordan" },
+  { text: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau" },
+  { text: "Courage doesn't always roar. Sometimes it's the quiet voice that says 'try again tomorrow.'", author: "Mary Anne Radmacher" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+];
+
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const DAYS      = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -1208,6 +1354,8 @@ state.sessionNotes  = state.sessionNotes  || {};
 state.sessionStart  = state.sessionStart  || {};
 state.sessionElapsed = state.sessionElapsed || {};
 state.sessionRunning = state.sessionRunning || {};
+state.sessionRPE     = state.sessionRPE     || {};
+state.personalRecords = state.personalRecords || {};
 state.defaultTimer  = state.defaultTimer  || 120;
 state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
 
@@ -1230,11 +1378,13 @@ function saveState() {
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
+  showSplashIfNeeded();
   autoSetDayFromDate();
   renderDayGrid();
   renderWorkout();
   renderSchedule();
   renderProgress();
+  renderStreak();
   loadTrials();
   updateDefaultTimerDisplay();
   showInstallBannerIfNeeded();
@@ -1257,6 +1407,193 @@ function dismissInstallBanner() {
   document.getElementById('installBanner').style.display = 'none';
 }
 
+// ─── SPLASH ──────────────────────────────────────────────────────────────────
+
+function showSplashIfNeeded() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.lastQuoteDate === today) return;
+  const idx   = Math.floor(new Date().getTime() / 86400000) % QUOTES.length;
+  const q     = QUOTES[idx];
+  document.getElementById('splashQuote').textContent  = `"${q.text}"`;
+  document.getElementById('splashAuthor').textContent = `— ${q.author}`;
+  document.getElementById('splash').style.display     = 'flex';
+}
+
+function dismissSplash() {
+  state.lastQuoteDate = new Date().toISOString().slice(0, 10);
+  saveState();
+  document.getElementById('splash').style.display = 'none';
+}
+
+// ─── STREAK ──────────────────────────────────────────────────────────────────
+
+function getStreak() {
+  let streak = 0;
+  for (let w = state.week; w >= 1; w--) {
+    for (let d = (w === state.week ? state.day : 6); d >= 0; d--) {
+      if (d === 3) continue; // rest day
+      const phase = getPhase(w);
+      const exs   = WORKOUTS[d]?.[phase.key];
+      if (!exs) continue;
+      const hasAny = exs.some((_, ei) =>
+        state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]
+      );
+      if (hasAny) streak++;
+      else if (streak > 0) return streak; // gap — stop
+    }
+  }
+  return streak;
+}
+
+function renderStreak() {
+  const el = document.getElementById('streakBar');
+  if (!el) return;
+  const s = getStreak();
+  if (s === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="streak-bar">
+    <div>
+      <div class="streak-num">${s}</div>
+      <div class="streak-label">day streak</div>
+    </div>
+    <div class="streak-icon">${s >= 7 ? '🔥' : s >= 3 ? '⚡' : '💪'}</div>
+  </div>`;
+}
+
+// ─── HISTORY CALENDAR ────────────────────────────────────────────────────────
+
+function renderHistory() {
+  const el = document.getElementById('historyContent');
+  if (!el) return;
+
+  const streak = getStreak();
+
+  let html = `<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div class="streak-num">${streak}</div><div class="streak-label">current streak</div></div>
+      <div style="font-size:40px">${streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '💪'}</div>
+    </div>
+  </div>`;
+
+  html += `<div class="card">
+    <div class="card-title">60-Day Program</div>
+    <div class="cal-header">${DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('')}</div>
+    <div class="cal-grid">`;
+
+  for (let w = 1; w <= 10; w++) {
+    for (let d = 0; d < 7; d++) {
+      const isRest    = d === 3;
+      const isCurrent = w === state.week && d === state.day;
+      const isFuture  = w > state.week || (w === state.week && d > state.day);
+      const phase     = getPhase(w);
+      const exs       = WORKOUTS[d]?.[phase.key] || [];
+
+      let cls = 'cal-cell';
+      let inner = `<div>${DAYS[d][0]}</div><div class="cal-cell-week">W${w}</div>`;
+
+      if (isRest) {
+        cls += ' rest-day';
+        inner = `<div>😴</div>`;
+      } else if (isFuture) {
+        cls += ' future';
+      } else {
+        const total    = exs.length;
+        const done     = exs.filter((_, ei) => state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]).length;
+        if (total > 0 && done === total) cls += ' complete';
+        else if (done > 0)              cls += ' partial';
+      }
+      if (isCurrent) cls += ' current';
+
+      html += `<div class="${cls}" onclick="jumpToDay(${w},${d})">${inner}</div>`;
+    }
+  }
+
+  html += `</div>
+    <div style="display:flex;gap:12px;margin-top:14px;font-size:11px;color:var(--muted);flex-wrap:wrap">
+      <span><span style="color:var(--green)">■</span> Complete</span>
+      <span><span style="color:var(--accent)">■</span> Partial</span>
+      <span style="color:var(--border)">■ Not started</span>
+      <span style="opacity:0.3">■ Future</span>
+    </div>
+  </div>`;
+
+  // Personal records list
+  const prs = Object.entries(state.personalRecords);
+  if (prs.length > 0) {
+    html += `<div class="card"><div class="card-title">Personal Records 🏆</div>`;
+    prs.forEach(([name, pr]) => {
+      html += `<div class="event-row">
+        <div class="event-name">${name}</div>
+        <div style="text-align:right">
+          <div class="event-score">${pr.value} ${pr.unit}</div>
+          <div class="event-weight">Week ${pr.week}, ${DAY_NAMES[pr.day]}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function jumpToDay(week, day) {
+  state.week = week;
+  state.day  = day;
+  document.getElementById('weekNum').textContent = week;
+  saveState();
+  renderDayGrid();
+  renderWorkout();
+  updateHeader();
+  startDurationTracking();
+  // switch to today tab
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-today').classList.add('active');
+  document.querySelector('.nav-btn').classList.add('active');
+}
+
+// ─── RPE ─────────────────────────────────────────────────────────────────────
+
+function renderRPE(noteKey) {
+  const current = state.sessionRPE[noteKey] || 0;
+  const colors  = ['','#4caf7d','#4caf7d','#4caf7d','#e8c84a','#e8c84a','#e8c84a','#ff9f43','#ff9f43','#e05555','#e05555'];
+  let html = `<div class="card"><div class="card-title">Session RPE — How hard was it?</div>
+    <div class="rpe-row">`;
+  for (let i = 1; i <= 10; i++) {
+    const sel = current === i;
+    html += `<button class="rpe-btn ${sel ? 'selected' : ''}"
+      style="${sel ? `background:${colors[i]};` : ''}"
+      onclick="setRPE('${noteKey}', ${i})">${i}</button>`;
+  }
+  html += `</div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;padding:0 2px">
+      <span>Easy</span><span>Moderate</span><span>Hard</span><span>Max</span>
+    </div>
+  </div>`;
+  return html;
+}
+
+function setRPE(noteKey, val) {
+  state.sessionRPE[noteKey] = val;
+  saveState();
+  renderWorkout();
+}
+
+// ─── PERSONAL RECORDS ────────────────────────────────────────────────────────
+
+function checkPR(exName, week, dayIdx, val, unit) {
+  const num = parseFloat(val);
+  if (isNaN(num) || num <= 0) return false;
+  const existing = state.personalRecords[exName];
+  const isTime   = unit === 'min' || unit === 'sec';
+  const isBetter = !existing || (isTime ? num < existing.value : num > existing.value);
+  if (isBetter) {
+    state.personalRecords[exName] = { value: num, unit, week, day: dayIdx };
+    saveState();
+    return true;
+  }
+  return false;
+}
+
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 
 function showScreen(name, btn) {
@@ -1265,6 +1602,7 @@ function showScreen(name, btn) {
   document.getElementById('screen-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'progress') { renderProgress(); updateDeltas(); }
+  if (name === 'history')  { renderHistory(); }
 }
 
 // ─── WEEK / DAY ──────────────────────────────────────────────────────────────
@@ -1502,6 +1840,7 @@ function renderWorkout() {
 
   const noteKey   = `${week}-${dayIdx}`;
   const savedNote = state.sessionNotes[noteKey] || '';
+  html += renderRPE(noteKey);
   html += `<div class="card">
     <div class="card-title">Session Notes</div>
     <textarea class="session-notes-area" placeholder="How did it feel? Any issues? Adjustments made…" oninput="saveSessionNote('${noteKey}', this.value)">${savedNote}</textarea>
@@ -1554,6 +1893,11 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     let inputFields = '';
     const skipped   = state.skippedSets[key];
     const skipBtn   = `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
+    const prKey     = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx]?.name;
+    const pr        = prKey && state.personalRecords[prKey];
+    const savedRepsVal = state.completedSets[key + '-reps'];
+    const isPR      = pr && savedRepsVal && parseFloat(savedRepsVal) === pr.value && pr.week === week && pr.day === dayIdx;
+    const prBadge   = isPR ? `<span class="pr-badge">🏆 PR</span>` : '';
 
     if (runType === 'run') {
       const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
@@ -1571,7 +1915,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">${setLabel}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
-        ${inputFields}
+        ${inputFields}${prBadge}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
         ${skipBtn}
       </div>`;
@@ -1585,7 +1929,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">Rep ${s + 1}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
-        ${inputFields}
+        ${inputFields}${prBadge}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
         ${skipBtn}
       </div>`;
@@ -1601,7 +1945,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
             onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
-          <div class="input-label">reps</div>
+          <div class="input-label">reps${prBadge}</div>
         </div>
         ${weightField}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
@@ -1689,6 +2033,7 @@ function toggleSet(week, dayIdx, exIdx, setIdx) {
   }
   saveState();
   renderWorkout();
+  renderStreak();
 }
 
 function getExerciseRestTime(name) {
@@ -1701,11 +2046,24 @@ function getExerciseRestTime(name) {
 function saveReps(week, dayIdx, exIdx, setIdx, val) {
   state.completedSets[`${week}-${dayIdx}-${exIdx}-${setIdx}-reps`] = val;
   saveState();
+  const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
+  if (!ex) return;
+  const rt = getRunType(ex.name);
+  const unit = rt === 'run' ? 'miles' : rt === 'sprint' ? 'sec' : 'reps';
+  if (checkPR(ex.name, week, dayIdx, val, unit)) {
+    showToast(`🏆 New PR — ${ex.name}!`);
+    renderWorkout();
+  }
 }
 
 function saveWeight(week, dayIdx, exIdx, setIdx, val) {
   state.completedSets[`${week}-${dayIdx}-${exIdx}-${setIdx}-weight`] = val;
   saveState();
+  const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
+  if (!ex) return;
+  if (checkPR(ex.name + ' (weight)', week, dayIdx, val, 'lbs')) {
+    showToast(`🏆 New weight PR — ${ex.name}!`);
+  }
 }
 
 function savePace(week, dayIdx, exIdx, setIdx, val) {
