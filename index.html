@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MAD Tracker v4">
-<title>MAD Fitness Tracker v4 — Dariusz</title>
+<meta name="apple-mobile-web-app-title" content="MAD Tracker v2">
+<title>MAD Tracker v2 — Dariusz</title>
 <style>
   :root {
     --bg: #0f0f0f;
@@ -237,6 +237,7 @@
     transition: all 0.15s;
   }
   .set-dot.done { background: var(--green); border-color: var(--green); }
+  .set-dot.skipped { background: var(--muted); border-color: var(--muted); }
   .complete-badge {
     font-size: 10px;
     color: var(--green);
@@ -323,6 +324,20 @@
     flex-shrink: 0;
   }
   .set-check.done { background: var(--green); border-color: var(--green); }
+  .set-check.skipped { background: var(--surface2); border-color: var(--muted); color: var(--muted); }
+  .set-skip {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .set-skip.active { background: rgba(136,136,136,0.2); border-color: var(--muted); color: var(--text); }
   .reps-input {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -595,7 +610,7 @@
 
 <div class="header">
   <div class="header-top">
-    <div class="logo">MAD <span>FITNESS</span> <span style="font-size:13px;color:var(--muted);font-weight:400">v4</span></div>
+    <div class="logo">MAD <span>TRACKER</span> <span style="font-size:13px;color:var(--muted);font-weight:400">v2</span></div>
     <div class="phase-badge" id="headerPhase">PHASE 1</div>
   </div>
   <div class="sub-header">
@@ -797,6 +812,15 @@
         <button class="week-btn" onclick="changeDefaultTimer(-30)">−</button>
         <div class="settings-value" id="defaultTimerDisplay">2:00</div>
         <button class="week-btn" onclick="changeDefaultTimer(30)">+</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Vibrate when timer ends</div>
+        <div class="settings-sublabel">Phone vibrates when rest period is over</div>
+      </div>
+      <div id="vibrateToggle" onclick="toggleVibrate()" style="width:48px;height:28px;border-radius:14px;background:var(--green);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
+        <div id="vibrateKnob" style="position:absolute;top:3px;left:23px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
       </div>
     </div>
   </div>
@@ -1172,11 +1196,13 @@ const SCHEDULE = [
 let state = JSON.parse(localStorage.getItem('madStateV4') || '{}');
 state.week          = state.week          || 1;
 state.completedSets = state.completedSets || {};
+state.skippedSets   = state.skippedSets   || {};
 state.checklist     = state.checklist     || {};
 state.trials        = state.trials        || {};
 state.sessionNotes  = state.sessionNotes  || {};
 state.sessionStart  = state.sessionStart  || {};
 state.defaultTimer  = state.defaultTimer  || 120;
+state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
 
 if (state.day === undefined || state.day === null) {
   const jsDay = new Date().getDay();
@@ -1206,6 +1232,7 @@ window.addEventListener('DOMContentLoaded', () => {
   showInstallBannerIfNeeded();
   loadStartDateInput();
   startDurationTracking();
+  updateVibrateToggle();
 });
 
 function showInstallBannerIfNeeded() {
@@ -1298,7 +1325,8 @@ function isDayComplete(week, dayIdx) {
   if (!exercises) return false;
   return exercises.every((ex, exIdx) => {
     for (let s = 0; s < ex.sets; s++) {
-      if (!state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]) return false;
+      const key = `${week}-${dayIdx}-${exIdx}-${s}`;
+      if (!state.completedSets[key] && !state.skippedSets[key]) return false;
     }
     return true;
   });
@@ -1460,8 +1488,10 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
   const isExpanded = expandedExercises.has(`${dayIdx}-${exIdx}`);
 
   const dots = Array.from({length: ex.sets}, (_, s) => {
-    const done = state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`];
-    return `<div class="set-dot ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleSet(${week},${dayIdx},${exIdx},${s})"></div>`;
+    const key     = `${week}-${dayIdx}-${exIdx}-${s}`;
+    const done    = state.completedSets[key];
+    const skipped = state.skippedSets[key];
+    return `<div class="set-dot ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="event.stopPropagation();toggleSet(${week},${dayIdx},${exIdx},${s})"></div>`;
   }).join('');
 
   const weighted          = isWeightedExercise(ex.name);
@@ -1478,6 +1508,9 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     const savedPace   = state.completedSets[key + '-pace']   || '';
 
     let inputFields = '';
+    const skipped   = state.skippedSets[key];
+    const skipBtn   = `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
+
     if (runType === 'run') {
       const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
       inputFields = `
@@ -1493,9 +1526,10 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         </div>`;
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">${setLabel}</div>
-        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+        ${skipBtn}
       </div>`;
     } else if (runType === 'sprint') {
       inputFields = `
@@ -1506,9 +1540,10 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         </div>`;
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">Rep ${s + 1}</div>
-        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+        ${skipBtn}
       </div>`;
     } else {
       const weightField = weighted ? `<div class="input-group">
@@ -1518,7 +1553,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       </div>` : '';
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">Set ${s + 1}</div>
-        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
             onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
@@ -1526,6 +1561,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         </div>
         ${weightField}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+        ${skipBtn}
       </div>`;
     }
   }
@@ -1598,6 +1634,7 @@ function toggleSet(week, dayIdx, exIdx, setIdx) {
     delete state.completedSets[key];
   } else {
     state.completedSets[key] = true;
+    delete state.skippedSets[key];
     justFlashKey = key;
     recordSessionStart();
     const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
@@ -1687,15 +1724,16 @@ function startTimer(seconds) {
   document.getElementById('timerBar').classList.add('visible');
   timerInterval = setInterval(() => {
     timerSeconds--;
-    if (timerSeconds <= 0) { stopTimer(); showToast('Rest complete — go!'); }
+    if (timerSeconds <= 0) { stopTimer(true); showToast('Rest complete — go!'); }
     else updateTimerDisplay();
   }, 1000);
 }
 
-function stopTimer() {
+function stopTimer(vibrate) {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
   document.getElementById('timerBar').classList.remove('visible');
+  if (vibrate && state.vibrate && navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 
 function adjustTimer(delta) {
@@ -1892,6 +1930,33 @@ function updateDefaultTimerDisplay() {
   const s  = state.defaultTimer % 60;
   const el = document.getElementById('defaultTimerDisplay');
   if (el) el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function toggleVibrate() {
+  state.vibrate = !state.vibrate;
+  saveState();
+  updateVibrateToggle();
+}
+
+function updateVibrateToggle() {
+  const toggle = document.getElementById('vibrateToggle');
+  const knob   = document.getElementById('vibrateKnob');
+  if (!toggle || !knob) return;
+  toggle.style.background = state.vibrate ? 'var(--green)' : 'var(--border)';
+  knob.style.left          = state.vibrate ? '23px' : '3px';
+}
+
+function toggleSkip(week, dayIdx, exIdx, setIdx) {
+  const key = `${week}-${dayIdx}-${exIdx}-${setIdx}`;
+  if (state.skippedSets[key]) {
+    delete state.skippedSets[key];
+  } else {
+    state.skippedSets[key] = true;
+    delete state.completedSets[key];
+    recordSessionStart();
+  }
+  saveState();
+  renderWorkout();
 }
 
 function resetData() {
