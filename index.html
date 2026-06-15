@@ -364,7 +364,7 @@
   .weight-input:focus { outline: none; border-color: var(--accent2); }
   .input-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 2px; }
   .input-group { display: flex; flex-direction: column; align-items: center; }
-  .set-notes { font-size: 12px; color: var(--muted); flex: 1; }
+  .set-notes { font-size: 12px; color: var(--muted); min-width: 0; flex: 1; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .session-notes-area {
     width: 100%;
@@ -404,6 +404,8 @@
   }
   .checklist li.checked .check-box { background: var(--green); border-color: var(--green); }
   .checklist li.checked .check-text { text-decoration: line-through; color: var(--muted); }
+  .checklist li.skipped .check-box { background: var(--surface2); border-color: var(--muted); color: var(--muted); }
+  .checklist li.skipped .check-text { text-decoration: line-through; color: var(--muted); opacity: 0.5; }
 
   .timer-bar {
     position: fixed;
@@ -1199,7 +1201,8 @@ let state = JSON.parse(localStorage.getItem('madStateV4') || '{}');
 state.week          = state.week          || 1;
 state.completedSets = state.completedSets || {};
 state.skippedSets   = state.skippedSets   || {};
-state.checklist     = state.checklist     || {};
+state.checklist        = state.checklist        || {};
+state.checklistSkipped = state.checklistSkipped || {};
 state.trials        = state.trials        || {};
 state.sessionNotes  = state.sessionNotes  || {};
 state.sessionStart  = state.sessionStart  || {};
@@ -1455,13 +1458,16 @@ function renderWorkout() {
   html += `<div class="card"><ul class="checklist">`;
   workout.warmup.forEach((item, i) => {
     const key     = `${week}-${dayIdx}-warmup-${i}`;
-    const checked = state.checklist[key] ? 'checked' : '';
+    const done    = state.checklist[key];
+    const skipped = state.checklistSkipped[key];
+    const cls     = done ? 'checked' : skipped ? 'skipped' : '';
     const yt      = checklistYoutubeUrl(item);
-    html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
-      <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
-      <div style="flex:1"><span class="check-text">${item}</span>
+    html += `<li class="${cls}">
+      <div class="check-box" onclick="toggleChecklist('${key}', this.closest('li'))">${done ? '✓' : skipped ? '–' : ''}</div>
+      <div style="flex:1" onclick="toggleChecklist('${key}', this.closest('li'))"><span class="check-text">${item}</span>
         <a class="demo-btn" style="display:inline-flex;margin-top:6px;font-size:11px;padding:5px 10px" href="${yt}" target="_blank" onclick="event.stopPropagation()">▶ Demo</a>
       </div>
+      <button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleChecklistSkip('${key}', this.closest('li'))" style="margin-left:8px;flex-shrink:0">–</button>
     </li>`;
   });
   html += `</ul></div>`;
@@ -1480,13 +1486,16 @@ function renderWorkout() {
   html += `<div class="card"><ul class="checklist">`;
   workout.cooldown.forEach((item, i) => {
     const key     = `${week}-${dayIdx}-cooldown-${i}`;
-    const checked = state.checklist[key] ? 'checked' : '';
+    const done    = state.checklist[key];
+    const skipped = state.checklistSkipped[key];
+    const cls     = done ? 'checked' : skipped ? 'skipped' : '';
     const yt      = checklistYoutubeUrl(item);
-    html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
-      <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
-      <div style="flex:1"><span class="check-text">${item}</span>
+    html += `<li class="${cls}">
+      <div class="check-box" onclick="toggleChecklist('${key}', this.closest('li'))">${done ? '✓' : skipped ? '–' : ''}</div>
+      <div style="flex:1" onclick="toggleChecklist('${key}', this.closest('li'))"><span class="check-text">${item}</span>
         <a class="demo-btn" style="display:inline-flex;margin-top:6px;font-size:11px;padding:5px 10px" href="${yt}" target="_blank" onclick="event.stopPropagation()">▶ Demo</a>
       </div>
+      <button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleChecklistSkip('${key}', this.closest('li'))" style="margin-left:8px;flex-shrink:0">–</button>
     </li>`;
   });
   html += `</ul></div>`;
@@ -1712,10 +1721,27 @@ function saveSessionNote(key, val) {
 function toggleChecklist(key, el) {
   const checked = !state.checklist[key];
   state.checklist[key] = checked;
+  if (checked) delete state.checklistSkipped[key];
   saveState();
   el.classList.toggle('checked', checked);
+  el.classList.toggle('skipped', false);
   const box = el.querySelector('.check-box');
   if (box) box.textContent = checked ? '✓' : '';
+  const skip = el.querySelector('.set-skip');
+  if (skip) skip.classList.toggle('active', false);
+}
+
+function toggleChecklistSkip(key, el) {
+  const skipped = !state.checklistSkipped[key];
+  state.checklistSkipped[key] = skipped;
+  if (skipped) delete state.checklist[key];
+  saveState();
+  el.classList.toggle('skipped', skipped);
+  el.classList.toggle('checked', false);
+  const box = el.querySelector('.check-box');
+  if (box) box.textContent = skipped ? '–' : '';
+  const skip = el.querySelector('.set-skip');
+  if (skip) skip.classList.toggle('active', skipped);
 }
 
 function completeAll() {
