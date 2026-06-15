@@ -953,6 +953,12 @@
     <div id="importStatus" style="font-size:12px;color:var(--green);text-align:center;margin-bottom:10px;display:none"></div>
     <button class="btn-danger" onclick="resetData()">Reset All Data</button>
   </div>
+
+  <div class="card">
+    <div class="card-title">App Update</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">If you're not seeing the latest changes, tap below to force the app to reload the newest version. Your data is not affected.</p>
+    <button class="btn-primary" onclick="forceUpdate()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)">Force Update / Reload</button>
+  </div>
 </div>
 
 <!-- History Screen -->
@@ -2424,6 +2430,22 @@ function resetData() {
   if (confirm('Reset all workout data? This cannot be undone.')) {
     localStorage.removeItem('madStateV4');
     location.reload();
+  }
+}
+
+function forceUpdate() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      Promise.all(regs.map(r => r.unregister())).then(() => {
+        caches.keys().then(keys => {
+          Promise.all(keys.map(k => caches.delete(k))).then(() => {
+            location.reload(true);
+          });
+        });
+      });
+    });
+  } else {
+    location.reload(true);
   }
 }
 
