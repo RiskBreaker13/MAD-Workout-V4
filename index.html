@@ -1486,40 +1486,51 @@ function renderHistory() {
 
   // Build start-date anchor for date-aware calendar
   const startDate = state.programStart ? new Date(state.programStart + 'T00:00:00') : null;
-  const startDow  = startDate ? (startDate.getDay() + 6) % 7 : 0; // JS Sun=0 → Mon=0 system
+
+  if (!startDate) {
+    html += `<div class="card" style="text-align:center;padding:32px 20px">
+      <div style="font-size:32px;margin-bottom:12px">📅</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">Set your start date</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Go to Settings and enter your program start date to see the full calendar with correct dates.</div>
+      <button class="btn-primary" style="margin-top:0" onclick="document.querySelectorAll('.nav-btn')[4].click()">Go to Settings →</button>
+    </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  const startDow  = (startDate.getDay() + 6) % 7; // JS Sun=0 → Mon=0 system
   const todayMs   = new Date().setHours(0,0,0,0);
 
+  // "Today" position based purely on start date, not on state.week/day
+  const todayWD   = calcWeekAndDay(state.programStart);
+  const todayWeek = todayWD ? todayWD.week : state.week;
+  const todayDay  = todayWD ? todayWD.day  : state.day;
+
   html += `<div class="card">
-    <div class="card-title">60-Day Program${startDate ? ` · started ${startDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : ''}</div>
+    <div class="card-title">60-Day Program · started ${startDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
     <div class="cal-header">${DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('')}</div>
     <div class="cal-grid">`;
 
   for (let w = 1; w <= 10; w++) {
     for (let d = 0; d < 7; d++) {
-      const isRest    = d === 3;
-      const isCurrent = w === state.week && d === state.day;
-      const phase     = getPhase(w);
-      const exs       = WORKOUTS[d]?.[phase.key] || [];
+      const isRest = d === 3;
+      const phase  = getPhase(w);
+      const exs    = WORKOUTS[d]?.[phase.key] || [];
 
-      // Date-aware past/future: offset from start = (w-1)*7 + ((d - startDow + 7) % 7)
-      let isFuture = false;
-      let dateLabel = '';
-      if (startDate) {
-        const offset   = (w - 1) * 7 + ((d - startDow + 7) % 7);
-        const cellDate = new Date(startDate);
-        cellDate.setDate(cellDate.getDate() + offset);
-        isFuture   = cellDate.getTime() > todayMs;
-        dateLabel  = cellDate.getDate().toString();
-      } else {
-        isFuture = w > state.week || (w === state.week && d > state.day);
-      }
+      const offset   = (w - 1) * 7 + ((d - startDow + 7) % 7);
+      const cellDate = new Date(startDate);
+      cellDate.setDate(cellDate.getDate() + offset);
+      const cellMs   = cellDate.setHours(0,0,0,0);
+      const isFuture = cellMs > todayMs;
+      const isCurrent = w === todayWeek && d === todayDay;
+      const dateLabel = cellDate.getDate().toString();
 
       let cls   = 'cal-cell';
-      let inner = `<div style="font-size:11px;font-weight:700">${dateLabel || DAYS[d][0]}</div><div class="cal-cell-week">W${w}</div>`;
+      let inner = `<div style="font-size:11px;font-weight:700">${dateLabel}</div><div class="cal-cell-week">W${w}</div>`;
 
       if (isRest) {
         cls  += ' rest-day';
-        inner = `<div style="font-size:14px">😴</div>`;
+        inner = `<div style="font-size:14px">😴</div><div class="cal-cell-week">${dateLabel}</div>`;
       } else if (isFuture) {
         cls += ' future';
       } else {

@@ -1,4 +1,4 @@
-const CACHE = 'mad-v4-2';
+const CACHE = 'mad-v4-3';
 const FILES = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
