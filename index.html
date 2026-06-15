@@ -1444,19 +1444,37 @@ function showQuote() {
 // ─── STREAK ──────────────────────────────────────────────────────────────────
 
 function getStreak() {
+  if (!state.programStart) return 0;
+
+  const startDate  = new Date(state.programStart + 'T00:00:00');
+  const startDow   = (startDate.getDay() + 6) % 7; // Mon=0…Sun=6
+  const startMs    = new Date(state.programStart + 'T00:00:00').setHours(0,0,0,0);
+  const todayMs    = new Date().setHours(0,0,0,0);
+  const todayOffset = Math.floor((todayMs - startMs) / 86400000);
+  if (todayOffset < 0) return 0;
+
   let streak = 0;
-  for (let w = state.week; w >= 1; w--) {
-    for (let d = (w === state.week ? state.day : 6); d >= 0; d--) {
-      if (d === 3) continue; // rest day
-      const phase = getPhase(w);
-      const exs   = WORKOUTS[d]?.[phase.key];
-      if (!exs) continue;
-      const hasAny = exs.some((_, ei) =>
-        state.completedSets[`${w}-${d}-${ei}-0`] || state.skippedSets[`${w}-${d}-${ei}-0`]
-      );
-      if (hasAny) streak++;
-      else if (streak > 0) return streak; // gap — stop
+  // Walk backwards through sequential program days (n = days since start)
+  for (let n = Math.min(todayOffset, 69); n >= 0; n--) {
+    const week      = Math.floor(n / 7) + 1;
+    const dayOfWeek = (startDow + (n % 7)) % 7; // Mon=0…Sun=6
+    if (dayOfWeek === 3) continue; // skip rest days
+
+    const phase  = getPhase(week);
+    const exs    = WORKOUTS[dayOfWeek]?.[phase.key];
+    if (!exs) continue;
+
+    const hasAny = exs.some((_, ei) =>
+      state.completedSets[`${week}-${dayOfWeek}-${ei}-0`] ||
+      state.skippedSets[`${week}-${dayOfWeek}-${ei}-0`]
+    );
+
+    if (hasAny) {
+      streak++;
+    } else if (streak > 0) {
+      return streak; // gap found — stop counting
     }
+    // if streak===0 and not logged, today may just not be done yet — keep going
   }
   return streak;
 }
