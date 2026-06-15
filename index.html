@@ -57,15 +57,17 @@
   .day-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
   .duration-badge {
     font-size: 12px;
-    color: var(--accent);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    background: rgba(232,200,74,0.1);
     padding: 4px 10px;
     border-radius: 20px;
-    display: none;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s, color 0.2s;
   }
-  .duration-badge.visible { display: block; }
+  .duration-badge.stopped  { color: var(--muted); background: rgba(136,136,136,0.12); }
+  .duration-badge.running  { color: var(--accent); background: rgba(232,200,74,0.1); }
+  .duration-badge.paused   { color: var(--muted);  background: rgba(136,136,136,0.12); }
 
   .install-banner {
     background: rgba(232,200,74,0.12);
@@ -618,7 +620,7 @@
       <div class="day-label" id="headerDay">Monday</div>
       <div class="day-sub" id="headerSub">Pull-ups & Back · Week 1</div>
     </div>
-    <div class="duration-badge" id="durationBadge">0:00</div>
+    <div class="duration-badge stopped" id="durationBadge" onclick="toggleSessionTimer()">▶ 0:00</div>
   </div>
 </div>
 
@@ -1201,6 +1203,8 @@ state.checklist     = state.checklist     || {};
 state.trials        = state.trials        || {};
 state.sessionNotes  = state.sessionNotes  || {};
 state.sessionStart  = state.sessionStart  || {};
+state.sessionElapsed = state.sessionElapsed || {};
+state.sessionRunning = state.sessionRunning || {};
 state.defaultTimer  = state.defaultTimer  || 120;
 state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
 
@@ -1213,6 +1217,7 @@ let timerInterval     = null;
 let timerSeconds      = 0;
 let expandedExercises = new Set();
 let durationInterval  = null;
+let sessionTickStart  = null;
 let justFlashKey      = null;
 
 function saveState() {
@@ -1343,34 +1348,64 @@ function updateHeader() {
 
 function startDurationTracking() {
   if (durationInterval) clearInterval(durationInterval);
-  const key = `${state.week}-${state.day}`;
-  if (state.sessionStart[key]) {
-    document.getElementById('durationBadge').classList.add('visible');
+  durationInterval = null;
+  sessionTickStart = null;
+  const key     = `${state.week}-${state.day}`;
+  const running = state.sessionRunning[key];
+  if (running) {
+    sessionTickStart = Date.now();
     durationInterval = setInterval(updateDurationDisplay, 1000);
-    updateDurationDisplay();
-  } else {
-    document.getElementById('durationBadge').classList.remove('visible');
   }
+  updateDurationDisplay();
+}
+
+function toggleSessionTimer() {
+  const key     = `${state.week}-${state.day}`;
+  const running = state.sessionRunning[key];
+  if (!running) {
+    // start or resume
+    state.sessionRunning[key] = true;
+    sessionTickStart = Date.now();
+    if (!durationInterval) durationInterval = setInterval(updateDurationDisplay, 1000);
+  } else {
+    // pause — accumulate elapsed
+    const elapsed = state.sessionElapsed[key] || 0;
+    state.sessionElapsed[key] = elapsed + Math.floor((Date.now() - sessionTickStart) / 1000);
+    state.sessionRunning[key] = false;
+    sessionTickStart = null;
+    if (durationInterval) { clearInterval(durationInterval); durationInterval = null; }
+  }
+  saveState();
+  updateDurationDisplay();
 }
 
 function recordSessionStart() {
   const key = `${state.week}-${state.day}`;
-  if (!state.sessionStart[key]) {
-    state.sessionStart[key] = Date.now();
+  if (!state.sessionRunning[key] && !(state.sessionElapsed[key] > 0)) {
+    state.sessionRunning[key] = true;
+    sessionTickStart = Date.now();
     saveState();
-    document.getElementById('durationBadge').classList.add('visible');
     if (!durationInterval) durationInterval = setInterval(updateDurationDisplay, 1000);
+    updateDurationDisplay();
   }
 }
 
 function updateDurationDisplay() {
-  const key   = `${state.week}-${state.day}`;
-  const start = state.sessionStart[key];
-  if (!start) return;
-  const secs = Math.floor((Date.now() - start) / 1000);
-  const m    = Math.floor(secs / 60);
-  const s    = secs % 60;
-  document.getElementById('durationBadge').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const badge   = document.getElementById('durationBadge');
+  if (!badge) return;
+  const key     = `${state.week}-${state.day}`;
+  const elapsed = state.sessionElapsed[key] || 0;
+  const live    = (state.sessionRunning[key] && sessionTickStart)
+                  ? Math.floor((Date.now() - sessionTickStart) / 1000)
+                  : 0;
+  const total   = elapsed + live;
+  const m       = Math.floor(total / 60);
+  const s       = total % 60;
+  const timeStr = `${m}:${String(s).padStart(2,'0')}`;
+  const running = state.sessionRunning[key];
+  const hasTime = total > 0;
+  badge.className = `duration-badge ${running ? 'running' : hasTime ? 'paused' : 'stopped'}`;
+  badge.textContent = running ? timeStr : hasTime ? `⏸ ${timeStr}` : '▶ 0:00';
 }
 
 // ─── WORKOUT RENDER ──────────────────────────────────────────────────────────
