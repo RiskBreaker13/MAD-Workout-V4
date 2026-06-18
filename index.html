@@ -664,17 +664,6 @@
   .cal-cell.future   { opacity: 0.2; cursor: default; }
   .cal-cell-week { font-size: 8px; color: inherit; opacity: 0.7; }
 
-  /* ── PR badge ── */
-  .pr-badge {
-    font-size: 10px; font-weight: 700;
-    background: rgba(232,200,74,0.2);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 6px;
-    padding: 1px 5px;
-    margin-left: 4px;
-    white-space: nowrap;
-  }
 
   /* ── RPE ── */
   .rpe-row {
@@ -1582,21 +1571,6 @@ function renderHistory() {
     </div>
   </div>`;
 
-  // Personal records list
-  const prs = Object.entries(state.personalRecords);
-  if (prs.length > 0) {
-    html += `<div class="card"><div class="card-title">Personal Records 🏆</div>`;
-    prs.forEach(([name, pr]) => {
-      html += `<div class="event-row">
-        <div class="event-name">${name}</div>
-        <div style="text-align:right">
-          <div class="event-score">${pr.value} ${pr.unit}</div>
-          <div class="event-weight">Week ${pr.week}, ${DAY_NAMES[pr.day]}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
 
   el.innerHTML = html;
 }
@@ -1646,19 +1620,6 @@ function setRPE(noteKey, val) {
 
 // ─── PERSONAL RECORDS ────────────────────────────────────────────────────────
 
-function checkPR(exName, week, dayIdx, val, unit) {
-  const num = parseFloat(val);
-  if (isNaN(num) || num <= 0) return false;
-  const existing = state.personalRecords[exName];
-  const isTime   = unit === 'min' || unit === 'sec';
-  const isBetter = !existing || (isTime ? num < existing.value : num > existing.value);
-  if (isBetter) {
-    state.personalRecords[exName] = { value: num, unit, week, day: dayIdx };
-    saveState();
-    return true;
-  }
-  return false;
-}
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 
@@ -1959,11 +1920,6 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     let inputFields = '';
     const skipped   = state.skippedSets[key];
     const skipBtn   = `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
-    const prKey     = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx]?.name;
-    const pr        = prKey && state.personalRecords[prKey];
-    const savedRepsVal = state.completedSets[key + '-reps'];
-    const isPR      = pr && savedRepsVal && parseFloat(savedRepsVal) === pr.value && pr.week === week && pr.day === dayIdx;
-    const prBadge   = isPR ? `<span class="pr-badge">🏆 PR</span>` : '';
 
     if (runType === 'run') {
       const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
@@ -1981,7 +1937,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">${setLabel}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
-        ${inputFields}${prBadge}
+        ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
         ${skipBtn}
       </div>`;
@@ -1995,7 +1951,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       setRows += `<div class="set-row" data-set-key="${key}">
         <div class="set-label">Rep ${s + 1}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
-        ${inputFields}${prBadge}
+        ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
         ${skipBtn}
       </div>`;
@@ -2011,7 +1967,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
             onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
-          <div class="input-label">reps${prBadge}</div>
+          <div class="input-label">reps</div>
         </div>
         ${weightField}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
@@ -2115,11 +2071,6 @@ function saveReps(week, dayIdx, exIdx, setIdx, val) {
   const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
   if (!ex) return;
   const rt = getRunType(ex.name);
-  const unit = rt === 'run' ? 'miles' : rt === 'sprint' ? 'sec' : 'reps';
-  if (checkPR(ex.name, week, dayIdx, val, unit)) {
-    showToast(`🏆 New PR — ${ex.name}!`);
-    renderWorkout();
-  }
 }
 
 function saveWeight(week, dayIdx, exIdx, setIdx, val) {
@@ -2127,9 +2078,6 @@ function saveWeight(week, dayIdx, exIdx, setIdx, val) {
   saveState();
   const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
   if (!ex) return;
-  if (checkPR(ex.name + ' (weight)', week, dayIdx, val, 'lbs')) {
-    showToast(`🏆 New weight PR — ${ex.name}!`);
-  }
 }
 
 function savePace(week, dayIdx, exIdx, setIdx, val) {
