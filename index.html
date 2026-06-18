@@ -685,6 +685,62 @@
     text-align: center;
   }
   .rpe-btn.selected { color: #000; border-color: transparent; }
+
+  /* ── Light Mode ── */
+  body.light {
+    --bg: #f2f2f7;
+    --surface: #ffffff;
+    --surface2: #e5e5ea;
+    --border: #c7c7cc;
+    --text: #1c1c1e;
+    --muted: #636366;
+  }
+
+  /* ── Quick-fill button ── */
+  .quick-fill-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .quick-fill-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Per-exercise notes ── */
+  .ex-notes-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 4px; }
+  .ex-notes-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-size: 13px;
+    resize: none;
+    min-height: 52px;
+    font-family: inherit;
+  }
+  .ex-notes-input:focus { outline: none; border-color: var(--accent); }
+
+  /* ── Session Summary ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .summary-cell { background: var(--surface2); border-radius: 10px; padding: 12px 6px; text-align: center; }
+  .summary-num { font-size: 20px; font-weight: 800; color: var(--accent); }
+  .summary-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* ── Volume Chart ── */
+  .vol-chart { margin-top: 4px; }
+  .vol-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .vol-week-label { font-size: 11px; color: var(--muted); min-width: 24px; }
+  .vol-track { flex: 1; height: 18px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .vol-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; min-width: 2px; transition: width 0.4s; }
+  .vol-count { font-size: 10px; font-weight: 700; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -745,6 +801,7 @@
 <!-- Progress Screen -->
 <div class="screen" id="screen-progress">
   <div class="stat-grid" id="statGrid"></div>
+  <div id="volChartCard"></div>
 
   <div class="card">
     <div class="card-title">Event Scoring (% improvement × weight)</div>
@@ -919,6 +976,15 @@
       </div>
       <div id="vibrateToggle" onclick="toggleVibrate()" style="width:48px;height:28px;border-radius:14px;background:var(--green);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
         <div id="vibrateKnob" style="position:absolute;top:3px;left:23px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Light Mode</div>
+        <div class="settings-sublabel">Switch to a light color scheme</div>
+      </div>
+      <div id="themeToggle" onclick="toggleTheme()" style="width:48px;height:28px;border-radius:14px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
+        <div id="themeKnob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
       </div>
     </div>
   </div>
@@ -1353,8 +1419,10 @@ state.sessionElapsed = state.sessionElapsed || {};
 state.sessionRunning = state.sessionRunning || {};
 state.sessionRPE     = state.sessionRPE     || {};
 state.personalRecords = state.personalRecords || {};
+state.exerciseNotes  = state.exerciseNotes  || {};
 state.defaultTimer  = state.defaultTimer  || 120;
 state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
+state.lightMode     = state.lightMode     || false;
 
 if (state.day === undefined || state.day === null) {
   const jsDay = new Date().getDay();
@@ -1375,6 +1443,7 @@ function saveState() {
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
   showSplashIfNeeded();
   autoSetDayFromDate();
   renderDayGrid();
@@ -1388,6 +1457,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadStartDateInput();
   startDurationTracking();
   updateVibrateToggle();
+  renderThemeToggle();
 });
 
 function showInstallBannerIfNeeded() {
@@ -1616,6 +1686,107 @@ function setRPE(noteKey, val) {
   state.sessionRPE[noteKey] = val;
   saveState();
   renderWorkout();
+}
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+
+function applyTheme() {
+  document.body.classList.toggle('light', !!state.lightMode);
+}
+
+function toggleTheme() {
+  state.lightMode = !state.lightMode;
+  saveState();
+  applyTheme();
+  renderThemeToggle();
+}
+
+function renderThemeToggle() {
+  const toggle = document.getElementById('themeToggle');
+  const knob   = document.getElementById('themeKnob');
+  if (!toggle || !knob) return;
+  toggle.style.background = state.lightMode ? 'var(--green)' : 'var(--border)';
+  knob.style.left          = state.lightMode ? '23px' : '3px';
+}
+
+// ─── QUICK FILL ──────────────────────────────────────────────────────────────
+
+function quickFill(week, dayIdx, exIdx, setIdx) {
+  const prevKey = `${week}-${dayIdx}-${exIdx}-${setIdx - 1}`;
+  const thisKey = `${week}-${dayIdx}-${exIdx}-${setIdx}`;
+  const pr = state.completedSets[prevKey + '-reps'];
+  const pw = state.completedSets[prevKey + '-weight'];
+  if (pr) state.completedSets[thisKey + '-reps']   = pr;
+  if (pw) state.completedSets[thisKey + '-weight'] = pw;
+  saveState();
+  renderWorkout();
+}
+
+// ─── EXERCISE NOTES ──────────────────────────────────────────────────────────
+
+function saveExerciseNote(key, val) {
+  state.exerciseNotes[key] = val;
+  saveState();
+}
+
+// ─── SESSION SUMMARY ─────────────────────────────────────────────────────────
+
+function buildSessionSummary(week, dayIdx) {
+  const phase     = getPhase(week);
+  const exercises = WORKOUTS[dayIdx]?.[phase.key] || [];
+  const key       = `${week}-${dayIdx}`;
+  let sets = 0, reps = 0, volume = 0;
+  exercises.forEach((ex, exIdx) => {
+    for (let s = 0; s < ex.sets; s++) {
+      const sk = `${week}-${dayIdx}-${exIdx}-${s}`;
+      if (state.completedSets[sk]) {
+        sets++;
+        const r = parseFloat(state.completedSets[sk + '-reps'])   || 0;
+        const w = parseFloat(state.completedSets[sk + '-weight']) || 0;
+        reps   += r;
+        volume += r * w;
+      }
+    }
+  });
+  const elapsed = state.sessionElapsed[key] || 0;
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  const dur = elapsed > 0 ? `${m}:${String(s).padStart(2,'0')}` : '—';
+  const rpe = state.sessionRPE[key] || '—';
+  return { sets, reps, volume: Math.round(volume), dur, rpe };
+}
+
+// ─── VOLUME CHART ────────────────────────────────────────────────────────────
+
+function renderVolumeChart() {
+  const data = Array.from({length: 10}, (_, i) => {
+    const w = i + 1;
+    let count = 0;
+    for (const key of Object.keys(state.completedSets)) {
+      if (key.includes('-reps') || key.includes('-weight') || key.includes('-pace')) continue;
+      if (key.split('-')[0] === String(w)) count++;
+    }
+    return count;
+  });
+  const max = Math.max(...data, 1);
+  const cur = state.week;
+  let html = '<div class="vol-chart">';
+  data.forEach((count, i) => {
+    const w     = i + 1;
+    const pct   = Math.max(Math.round(count / max * 100), count > 0 ? 3 : 0);
+    const color = w === cur ? 'var(--accent)' : w < cur ? 'var(--green)' : 'var(--border)';
+    const txtClr = (w === cur || w < cur) && count > 0 ? '#000' : 'var(--muted)';
+    html += `<div class="vol-bar-row">
+      <div class="vol-week-label">W${w}</div>
+      <div class="vol-track">
+        <div class="vol-fill" style="width:${pct}%;background:${color}">
+          ${count > 0 ? `<span class="vol-count" style="color:${txtClr}">${count}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
 }
 
 // ─── PERSONAL RECORDS ────────────────────────────────────────────────────────
@@ -1877,7 +2048,19 @@ function renderWorkout() {
   if (!allDone) {
     html += `<button class="complete-all-btn" onclick="completeAll()">Mark All Sets Done ✓</button>`;
   } else {
-    html += `<div style="text-align:center;padding:16px;color:var(--green);font-weight:700;font-size:16px">✓ Session Complete!</div>`;
+    const sum = buildSessionSummary(week, dayIdx);
+    html += `<div class="card" style="border-color:var(--green)">
+      <div style="text-align:center;color:var(--green);font-weight:700;font-size:18px;margin-bottom:4px">✓ Session Complete!</div>
+      <div class="summary-grid">
+        <div class="summary-cell"><div class="summary-num">${sum.sets}</div><div class="summary-lbl">Sets Done</div></div>
+        <div class="summary-cell"><div class="summary-num">${sum.reps || '—'}</div><div class="summary-lbl">Total Reps</div></div>
+        <div class="summary-cell"><div class="summary-num">${sum.volume > 0 ? sum.volume : '—'}</div><div class="summary-lbl">${sum.volume > 0 ? 'Vol (lbs)' : 'Volume'}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <div class="summary-cell"><div class="summary-num">${sum.dur}</div><div class="summary-lbl">Duration</div></div>
+        <div class="summary-cell"><div class="summary-num">RPE ${sum.rpe}</div><div class="summary-lbl">Effort</div></div>
+      </div>
+    </div>`;
   }
 
   content.innerHTML = html;
@@ -1920,6 +2103,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     let inputFields = '';
     const skipped   = state.skippedSets[key];
     const skipBtn   = `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
+    const fillBtn   = s > 0 ? `<button class="quick-fill-btn" onclick="quickFill(${week},${dayIdx},${exIdx},${s})" title="Copy from set above">↑</button>` : '';
 
     if (runType === 'run') {
       const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
@@ -1939,7 +2123,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
-        ${skipBtn}
+        ${fillBtn}${skipBtn}
       </div>`;
     } else if (runType === 'sprint') {
       inputFields = `
@@ -1953,7 +2137,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
-        ${skipBtn}
+        ${fillBtn}${skipBtn}
       </div>`;
     } else {
       const weightField = weighted ? `<div class="input-group">
@@ -1971,11 +2155,13 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         </div>
         ${weightField}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
-        ${skipBtn}
+        ${fillBtn}${skipBtn}
       </div>`;
     }
   }
 
+  const exNoteKey  = `${week}-${dayIdx}-${exIdx}`;
+  const exNoteVal  = state.exerciseNotes[exNoteKey] || '';
   const lastTime = getLastTime(week, dayIdx, exIdx);
   let lastTimeHtml = '';
   if (lastTime) {
@@ -2005,6 +2191,8 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     ${isExpanded ? `<div class="exercise-notes">
       ${ex.notes ? `<div class="form-tips-label">Form Tips</div><div style="margin-bottom:8px">${ex.notes}</div>` : ''}
       <a class="demo-btn" href="${youtubeUrl(ex.name)}" target="_blank" onclick="event.stopPropagation()">▶ Watch Demo on YouTube</a>
+      <div class="ex-notes-label">Exercise Notes</div>
+      <textarea class="ex-notes-input" placeholder="Form notes, adjustments, how it felt…" oninput="saveExerciseNote('${exNoteKey}', this.value)" onclick="event.stopPropagation()">${exNoteVal}</textarea>
     </div>` : ''}
   </div>`;
 }
@@ -2202,6 +2390,8 @@ function renderProgress() {
     if (!seen.has(dayKey)) { seen.add(dayKey); sessions++; }
     totalSets++;
   }
+  const volCard = document.getElementById('volChartCard');
+  if (volCard) volCard.innerHTML = `<div class="card"><div class="card-title">Sets Completed — By Week</div>${renderVolumeChart()}</div>`;
   document.getElementById('statGrid').innerHTML = `
     <div class="stat-box"><div class="stat-num">${state.week}</div><div class="stat-label">Current Week</div></div>
     <div class="stat-box"><div class="stat-num">${sessions}</div><div class="stat-label">Sessions Done</div></div>
