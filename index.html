@@ -665,6 +665,46 @@
   .cal-cell-week { font-size: 8px; color: inherit; opacity: 0.7; }
 
 
+  /* ── Day Override Modal ── */
+  .day-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 500;
+    display: flex; align-items: flex-end;
+  }
+  .day-modal {
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 20px 16px calc(20px + var(--safe-bottom));
+    width: 100%;
+    border-top: 1px solid var(--border);
+  }
+  .day-modal-title {
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .day-modal-date {
+    font-size: 18px; font-weight: 700; margin-bottom: 16px;
+  }
+  .day-modal-btn {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 14px 16px;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    margin-bottom: 8px; text-align: left;
+  }
+  .day-modal-btn.complete { border-color: var(--green); color: var(--green); }
+  .day-modal-btn.partial  { border-color: var(--accent); color: var(--accent); }
+  .day-modal-btn.none     { border-color: var(--muted); color: var(--muted); }
+  .day-modal-btn.jump     { border-color: var(--border); color: var(--text); }
+  .day-modal-cancel {
+    width: 100%; padding: 14px; border-radius: var(--radius);
+    border: none; background: none; color: var(--muted);
+    font-size: 15px; cursor: pointer; margin-top: 4px;
+  }
+
   /* ── RPE ── */
   .rpe-row {
     display: flex; gap: 5px; flex-wrap: nowrap;
@@ -1060,6 +1100,20 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Day Override Modal -->
+<div class="day-modal-overlay" id="dayModalOverlay" style="display:none" onclick="closeDayModal(event)">
+  <div class="day-modal">
+    <div class="day-modal-title">Day Status</div>
+    <div class="day-modal-date" id="dayModalDate"></div>
+    <button class="day-modal-btn complete" onclick="setDayOverride('complete')">✓ &nbsp;Mark Complete</button>
+    <button class="day-modal-btn partial"  onclick="setDayOverride('partial')">~ &nbsp;Mark Partial</button>
+    <button class="day-modal-btn none"     onclick="setDayOverride('none')">✕ &nbsp;Mark Not Done</button>
+    <button class="day-modal-btn jump"     onclick="jumpFromModal()">→ &nbsp;Go to this day</button>
+    <button class="day-modal-btn" id="dayModalClear" onclick="setDayOverride(null)" style="display:none">↺ &nbsp;Clear Manual Override</button>
+    <button class="day-modal-cancel" onclick="closeDayModal()">Cancel</button>
+  </div>
+</div>
+
 <script>
 // ─── QUOTES ──────────────────────────────────────────────────────────────────
 
@@ -1420,6 +1474,7 @@ state.sessionRunning = state.sessionRunning || {};
 state.sessionRPE     = state.sessionRPE     || {};
 state.personalRecords = state.personalRecords || {};
 state.exerciseNotes  = state.exerciseNotes  || {};
+state.dayOverrides   = state.dayOverrides   || {};
 state.defaultTimer  = state.defaultTimer  || 120;
 state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
 state.lightMode     = state.lightMode     || false;
@@ -1618,17 +1673,29 @@ function renderHistory() {
       } else if (isFuture) {
         cls += ' future';
       } else {
-        const total = exs.length;
-        const done  = exs.filter((_, ei) =>
-          state.completedSets[`${w}-${dayOfWeek}-${ei}-0`] ||
-          state.skippedSets[`${w}-${dayOfWeek}-${ei}-0`]
-        ).length;
-        if (total > 0 && done === total) cls += ' complete';
-        else if (done > 0)               cls += ' partial';
+        const overrideKey = `${w}-${dayOfWeek}`;
+        const override    = state.dayOverrides[overrideKey];
+        if (override) {
+          if (override === 'complete') cls += ' complete';
+          else if (override === 'partial') cls += ' partial';
+          // 'none' leaves cell unstyled (not done)
+          inner = `<div style="font-size:11px;font-weight:700">${dateLabel}</div><div class="cal-cell-week" style="color:var(--muted);opacity:0.6">✎</div>`;
+        } else {
+          const totalSets = exs.reduce((sum, ex) => sum + (ex.sets || 1), 0);
+          const doneSets  = exs.reduce((sum, ex, ei) =>
+            sum + Array.from({length: ex.sets || 1}, (_, s) =>
+              state.completedSets[`${w}-${dayOfWeek}-${ei}-${s}`] ||
+              state.skippedSets[`${w}-${dayOfWeek}-${ei}-${s}`] ? 1 : 0
+            ).reduce((a, b) => a + b, 0), 0);
+          if (totalSets > 0 && doneSets === totalSets) cls += ' complete';
+          else if (doneSets > 0)                       cls += ' partial';
+        }
       }
       if (isCurrent) cls += ' current';
 
-      html += `<div class="${cls}" onclick="${isRest || isFuture ? '' : `jumpToDay(${w},${dayOfWeek})`}">${inner}</div>`;
+      const clickable = !isRest && !isFuture;
+      const fullDate  = cellDate instanceof Date ? cellDate.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : dateLabel;
+      html += `<div class="${cls}" onclick="${clickable ? `openDayModal(${w},${dayOfWeek},'${fullDate}')` : ''}">${inner}</div>`;
     }
   }
 
@@ -1638,6 +1705,7 @@ function renderHistory() {
       <span><span style="color:var(--accent)">■</span> Partial</span>
       <span style="color:var(--border)">■ Not started</span>
       <span style="opacity:0.3">■ Future</span>
+      <span>✎ Manual</span>
     </div>
   </div>`;
 
@@ -1659,6 +1727,41 @@ function jumpToDay(week, day) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-today').classList.add('active');
   document.querySelector('.nav-btn').classList.add('active');
+}
+
+// ─── DAY OVERRIDE MODAL ──────────────────────────────────────────────────────
+
+let _modalWeek = null, _modalDow = null;
+
+function openDayModal(week, dow, dateLabel) {
+  _modalWeek = week;
+  _modalDow  = dow;
+  document.getElementById('dayModalDate').textContent = dateLabel;
+  const hasOverride = !!state.dayOverrides[`${week}-${dow}`];
+  document.getElementById('dayModalClear').style.display = hasOverride ? 'flex' : 'none';
+  document.getElementById('dayModalOverlay').style.display = 'flex';
+}
+
+function closeDayModal(e) {
+  if (e && e.target !== document.getElementById('dayModalOverlay')) return;
+  document.getElementById('dayModalOverlay').style.display = 'none';
+}
+
+function setDayOverride(status) {
+  const key = `${_modalWeek}-${_modalDow}`;
+  if (status === null) {
+    delete state.dayOverrides[key];
+  } else {
+    state.dayOverrides[key] = status;
+  }
+  saveState();
+  document.getElementById('dayModalOverlay').style.display = 'none';
+  renderHistory();
+}
+
+function jumpFromModal() {
+  document.getElementById('dayModalOverlay').style.display = 'none';
+  jumpToDay(_modalWeek, _modalDow);
 }
 
 // ─── RPE ─────────────────────────────────────────────────────────────────────
