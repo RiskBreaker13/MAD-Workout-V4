@@ -365,6 +365,19 @@
   .input-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 2px; }
   .input-group { display: flex; flex-direction: column; align-items: center; }
   .set-notes { font-size: 12px; color: var(--muted); min-width: 0; flex: 1; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .add-set-btn {
+    width: 100%; margin-top: 8px; padding: 8px;
+    background: none; border: 1.5px dashed var(--border);
+    border-radius: 8px; color: var(--muted); font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .add-set-btn:active { border-color: var(--accent); color: var(--accent); }
+  .remove-set-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: 2px solid var(--red); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--red); flex-shrink: 0;
+  }
 
   .session-notes-area {
     width: 100%;
@@ -1475,6 +1488,7 @@ state.sessionRPE     = state.sessionRPE     || {};
 state.personalRecords = state.personalRecords || {};
 state.exerciseNotes  = state.exerciseNotes  || {};
 state.dayOverrides   = state.dayOverrides   || {};
+state.extraSets      = state.extraSets      || {};
 state.defaultTimer  = state.defaultTimer  || 120;
 state.vibrate       = state.vibrate !== undefined ? state.vibrate : true;
 state.lightMode     = state.lightMode     || false;
@@ -2179,11 +2193,13 @@ function renderWorkout() {
 }
 
 function renderExercise(ex, exIdx, week, dayIdx, phase) {
-  const allDone    = Array.from({length: ex.sets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).every(Boolean);
-  const doneSets   = Array.from({length: ex.sets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).filter(Boolean).length;
+  const extraCount = state.extraSets[`${week}-${dayIdx}-${exIdx}`] || 0;
+  const totalSets  = ex.sets + extraCount;
+  const allDone    = Array.from({length: totalSets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).every(Boolean);
+  const doneSets   = Array.from({length: totalSets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).filter(Boolean).length;
   const isExpanded = expandedExercises.has(`${dayIdx}-${exIdx}`);
 
-  const dots = Array.from({length: ex.sets}, (_, s) => {
+  const dots = Array.from({length: totalSets}, (_, s) => {
     const key     = `${week}-${dayIdx}-${exIdx}-${s}`;
     const done    = state.completedSets[key];
     const skipped = state.skippedSets[key];
@@ -2196,7 +2212,8 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
   const runType           = getRunType(ex.name);
 
   let setRows = '';
-  for (let s = 0; s < ex.sets; s++) {
+  for (let s = 0; s < totalSets; s++) {
+    const isExtra = s >= ex.sets;
     const key         = `${week}-${dayIdx}-${exIdx}-${s}`;
     const done        = state.completedSets[key];
     const savedReps   = state.completedSets[key + '-reps']   || '';
@@ -2205,11 +2222,14 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
 
     let inputFields = '';
     const skipped   = state.skippedSets[key];
-    const skipBtn   = `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
-    const fillBtn   = s > 0 ? `<button class="quick-fill-btn" onclick="quickFill(${week},${dayIdx},${exIdx},${s})" title="Copy from set above">↑</button>` : '';
+    const skipBtn    = isExtra
+      ? `<button class="remove-set-btn" onclick="removeExtraSet(${week},${dayIdx},${exIdx},${s})" title="Remove set">×</button>`
+      : `<button class="set-skip ${skipped ? 'active' : ''}" onclick="toggleSkip(${week},${dayIdx},${exIdx},${s})" title="Skip set">–</button>`;
+    const fillBtn    = s > 0 ? `<button class="quick-fill-btn" onclick="quickFill(${week},${dayIdx},${exIdx},${s})" title="Copy from set above">↑</button>` : '';
+    const extraStyle = isExtra ? ' style="background:rgba(232,200,74,0.04);border-radius:6px"' : '';
 
     if (runType === 'run') {
-      const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
+      const setLabel = isExtra ? `+${s - ex.sets + 1}` : (ex.sets > 1 ? `Rep ${s + 1}` : 'Run');
       inputFields = `
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="0.0" value="${savedReps}"
@@ -2221,7 +2241,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
             onchange="savePace(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
           <div class="input-label">min/mi</div>
         </div>`;
-      setRows += `<div class="set-row" data-set-key="${key}">
+      setRows += `<div class="set-row" data-set-key="${key}"${extraStyle}>
         <div class="set-label">${setLabel}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
@@ -2229,27 +2249,29 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
         ${fillBtn}${skipBtn}
       </div>`;
     } else if (runType === 'sprint') {
+      const setLabel = isExtra ? `+${s - ex.sets + 1}` : `Rep ${s + 1}`;
       inputFields = `
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="0:00" value="${savedReps}"
             onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
           <div class="input-label">time</div>
         </div>`;
-      setRows += `<div class="set-row" data-set-key="${key}">
-        <div class="set-label">Rep ${s + 1}</div>
+      setRows += `<div class="set-row" data-set-key="${key}"${extraStyle}>
+        <div class="set-label">${setLabel}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         ${inputFields}
         <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
         ${fillBtn}${skipBtn}
       </div>`;
     } else {
+      const setLabel    = isExtra ? `+${s - ex.sets + 1}` : `Set ${s + 1}`;
       const weightField = weighted ? `<div class="input-group">
         <input class="weight-input" type="number" placeholder="${weightPlaceholder}" value="${savedWeight}"
           onchange="saveWeight(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
         <div class="input-label">${weightUnit}</div>
       </div>` : '';
-      setRows += `<div class="set-row" data-set-key="${key}">
-        <div class="set-label">Set ${s + 1}</div>
+      setRows += `<div class="set-row" data-set-key="${key}"${extraStyle}>
+        <div class="set-label">${setLabel}</div>
         <div class="set-check ${done ? 'done' : skipped ? 'skipped' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : skipped ? '–' : ''}</div>
         <div class="input-group">
           <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
@@ -2262,6 +2284,7 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       </div>`;
     }
   }
+  setRows += `<button class="add-set-btn" onclick="addExtraSet(${week},${dayIdx},${exIdx})">+ Add Set</button>`;
 
   const exNoteKey  = `${week}-${dayIdx}-${exIdx}`;
   const exNoteVal  = state.exerciseNotes[exNoteKey] || '';
@@ -2410,13 +2433,57 @@ function toggleChecklistSkip(key, el) {
   if (skip) skip.classList.toggle('active', skipped);
 }
 
+function addExtraSet(week, dayIdx, exIdx) {
+  const k = `${week}-${dayIdx}-${exIdx}`;
+  state.extraSets[k] = (state.extraSets[k] || 0) + 1;
+  saveState();
+  renderWorkout();
+}
+
+function removeExtraSet(week, dayIdx, exIdx, setIdx) {
+  const key = `${week}-${dayIdx}-${exIdx}-${setIdx}`;
+  const hasData = state.completedSets[key] || state.completedSets[key + '-reps'] || state.completedSets[key + '-weight'];
+  if (hasData && !confirm('This set has data — remove it anyway?')) return;
+  // Delete the data for this set index and shift higher extra sets down
+  const k = `${week}-${dayIdx}-${exIdx}`;
+  const total = (state.extraSets[k] || 0);
+  const baseIdx = setIdx; // sets from baseIdx upward shift down by 1
+  // Shift data from higher sets down
+  for (let s = baseIdx; s < 99; s++) {
+    const nextKey = `${week}-${dayIdx}-${exIdx}-${s + 1}`;
+    const curKey  = `${week}-${dayIdx}-${exIdx}-${s}`;
+    ['', '-reps', '-weight', '-pace'].forEach(suffix => {
+      if (state.completedSets[nextKey + suffix]) {
+        state.completedSets[curKey + suffix] = state.completedSets[nextKey + suffix];
+      } else {
+        delete state.completedSets[curKey + suffix];
+      }
+    });
+    ['', '-reps', '-weight', '-pace'].forEach(suffix => {
+      delete state.completedSets[nextKey + suffix];
+    });
+    if (state.skippedSets[nextKey]) {
+      state.skippedSets[curKey] = true;
+      delete state.skippedSets[nextKey];
+    } else {
+      delete state.skippedSets[curKey];
+    }
+    if (s + 1 >= baseIdx + total) break;
+  }
+  state.extraSets[k] = Math.max(0, total - 1);
+  if (state.extraSets[k] === 0) delete state.extraSets[k];
+  saveState();
+  renderWorkout();
+}
+
 function completeAll() {
   const week      = state.week;
   const dayIdx    = state.day;
   const phase     = getPhase(week);
   const exercises = WORKOUTS[dayIdx]?.[phase.key] || [];
   exercises.forEach((ex, exIdx) => {
-    for (let s = 0; s < ex.sets; s++) {
+    const total = ex.sets + (state.extraSets[`${week}-${dayIdx}-${exIdx}`] || 0);
+    for (let s = 0; s < total; s++) {
       state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`] = true;
     }
   });
