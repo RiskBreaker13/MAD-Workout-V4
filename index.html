@@ -2302,11 +2302,14 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
 
 function getLastTime(week, dayIdx, exIdx) {
   for (let w = week - 1; w >= 1; w--) {
+    const prevPhase   = getPhase(w);
+    const prevEx      = WORKOUTS[dayIdx]?.[prevPhase.key]?.[exIdx];
+    const setCount    = prevEx?.sets || 0;
+    if (!setCount) continue;
     const sets = [];
-    for (let s = 0; s < 10; s++) {
+    for (let s = 0; s < setCount; s++) {
       const r  = state.completedSets[`${w}-${dayIdx}-${exIdx}-${s}-reps`];
       const wt = state.completedSets[`${w}-${dayIdx}-${exIdx}-${s}-weight`];
-      if (!r && !wt && s > 0) break;
       if (r || wt) sets.push({ reps: r, weight: wt });
     }
     if (sets.length > 0) return { week: w, sets };
