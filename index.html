@@ -2324,15 +2324,23 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
 }
 
 function getLastTime(week, dayIdx, exIdx) {
+  const currentEx = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
+  if (!currentEx) return null;
+  const currentName     = currentEx.name;
+  const currentWeighted = isWeightedExercise(currentName);
   for (let w = week - 1; w >= 1; w--) {
-    const prevPhase   = getPhase(w);
-    const prevEx      = WORKOUTS[dayIdx]?.[prevPhase.key]?.[exIdx];
-    const setCount    = prevEx?.sets || 0;
+    const prevPhase = getPhase(w);
+    const prevExList = WORKOUTS[dayIdx]?.[prevPhase.key] || [];
+    // match by name so phase changes don't cross-contaminate
+    const prevExIdx = prevExList.findIndex(e => e.name === currentName);
+    if (prevExIdx === -1) continue;
+    const prevEx   = prevExList[prevExIdx];
+    const setCount = (prevEx?.sets || 0) + (state.extraSets[`${w}-${dayIdx}-${prevExIdx}`] || 0);
     if (!setCount) continue;
     const sets = [];
     for (let s = 0; s < setCount; s++) {
-      const r  = state.completedSets[`${w}-${dayIdx}-${exIdx}-${s}-reps`];
-      const wt = state.completedSets[`${w}-${dayIdx}-${exIdx}-${s}-weight`];
+      const r  = state.completedSets[`${w}-${dayIdx}-${prevExIdx}-${s}-reps`];
+      const wt = currentWeighted ? state.completedSets[`${w}-${dayIdx}-${prevExIdx}-${s}-weight`] : null;
       if (r || wt) sets.push({ reps: r, weight: wt });
     }
     if (sets.length > 0) return { week: w, sets };
