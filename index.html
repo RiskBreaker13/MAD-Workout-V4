@@ -2511,8 +2511,10 @@ function getRunType(name) {
 
 function isWeightedExercise(name) {
   const keywords   = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable','Face Pull','Tricep Dips','Bulgarian Split Squat','Box Jump','Tricep'];
-  const bodyweight = ['Bodyweight Squat','Sit-up','Leg Raise','Plank','Pull-ups (strict)','Push-ups (strict)','Negative Pull','Band-Assisted','Dead Hang','Easy','Fatigue','Jog','Run','Sprint','Stride','High Knee','Butt Kick','Mobility'];
+  const bodyweight = ['Bodyweight Squat','Sit-up','Leg Raise','Plank','Pull-ups (strict)','Push-ups (strict)','Dead Hang','Easy','Fatigue','Jog','Run','Sprint','Stride','High Knee','Butt Kick','Mobility'];
   if (bodyweight.some(k => name.includes(k))) return false;
+  // These need weight tracking for band/assist resistance
+  if (name.includes('Negative Pull') || name.includes('Band-Assisted')) return true;
   return keywords.some(k => name.includes(k));
 }
 
