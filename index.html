@@ -1184,46 +1184,55 @@ function getPhase(week) {
 }
 
 const WORKOUTS = {
-  // MONDAY — Pull-ups & Back
+  // MONDAY — Pull-ups & Back (Tonal + pull-up bar + bands)
   0: {
-    warmup: ['3 min light row or jump rope','Band pull-aparts — 2×12','Dead hang — 2×15 sec'],
-    cooldown: ['Lat stretch on rack — 60 sec/side',"Child's pose — 60 sec"],
+    warmup: ['3 min light jumping jacks or jog in place','Tonal: Face pulls 2×12 (light — shoulder activation)','Dead hang on Tonal bar — 2×15 sec'],
+    cooldown: ['Lat stretch on Tonal bar — 60 sec/side',"Child's pose — 60 sec"],
     p1: [
-      { name:'Negative Pull-ups', sets:5, reps:'3–5 reps, 6–8 sec descent', notes:'PRIMARY EXERCISE. Jump to top, lower as slowly as possible. Full control throughout.' },
-      { name:'Band-Assisted Pull-ups', sets:3, reps:'5–8 reps', notes:'Use a resistance band around the bar for support. Same technique as strict pull-up.' },
-      { name:'Lat Pulldown', sets:3, reps:'10–12', notes:'Moderate weight. Trains the pull-up pattern with adjustable load. Full stretch at top.' },
-      { name:'Bent-Over Row', sets:3, reps:'8–10', notes:'Barbell or dumbbell. Horizontal pull for mid-back balance. Control the descent.' },
-      { name:'Face Pulls', sets:2, reps:'15', notes:'Light weight. Rope at face height. Rear delt and rotator cuff. Never skip this.' },
+      { name:'Negative Pull-ups', sets:5, reps:'3–5 reps, 6–8 sec descent', notes:'PRIMARY. Use Tonal bar. Jump to top, lower as slowly as possible. Track band resistance used.' },
+      { name:'Band-Assisted Pull-ups', sets:3, reps:'5–8 reps', notes:'Loop resistance band over Tonal bar. Same pull-up technique — band reduces load. Log band resistance.' },
+      { name:'Tonal: Lat Pulldown', sets:3, reps:'10–12', notes:'Wide overhand grip. Trains pull-up pattern at adjustable load. Full stretch at top.' },
+      { name:'Tonal: Seated Cable Row', sets:3, reps:'10–12', notes:'Neutral grip. Mid-back and rhomboids. Squeeze scapulas at end.' },
+      { name:'Tonal: Straight Arm Pulldown', sets:2, reps:'12', notes:'Arms nearly straight throughout. Isolates lats directly — highest carryover to pull-ups.' },
+      { name:'Tonal: Face Pulls', sets:2, reps:'15', notes:'Elbows high, light weight. Rope at face height. Rear delt and rotator cuff health. Never skip.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Conversational pace. Weeks 1–2: optional. Week 3 onward: mandatory.' },
     ],
     p2: [
-      { name:'Negative Pull-ups', sets:6, reps:'4–5 reps, 8 sec descent', notes:'Longer descent than Phase 1. Full control, no dropping.' },
-      { name:'Band-Assisted Pull-ups', sets:4, reps:'6–8 reps', notes:'Use a lighter band than Phase 1 as strength builds.' },
-      { name:'Lat Pulldown', sets:4, reps:'10–12', notes:'Heavier than Phase 1. Progressive overload.' },
-      { name:'Bent-Over Row', sets:3, reps:'8–10', notes:'Control the descent.' },
-      { name:'Face Pulls', sets:2, reps:'15', notes:'Light weight. Never skip this.' },
-      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Now mandatory from week 3.' },
+      { name:'Negative Pull-ups', sets:6, reps:'4–5 reps, 8 sec descent', notes:'Longer controlled descent than Phase 1.' },
+      { name:'Band-Assisted Pull-ups', sets:4, reps:'6–8 reps', notes:'Use a lighter band than Phase 1 as strength develops.' },
+      { name:'Tonal: Lat Pulldown', sets:4, reps:'10–12', notes:'Heavier than Phase 1. Progressive overload each session.' },
+      { name:'Tonal: Seated Cable Row', sets:4, reps:'10–12', notes:'Heavier than Phase 1. Control the return.' },
+      { name:'Tonal: Straight Arm Pulldown', sets:3, reps:'12', notes:'Arms nearly straight. One more set than Phase 1.' },
+      { name:'Tonal: Single Arm Row', sets:2, reps:'10/side', notes:'NEW. Elbow drives behind torso. Unilateral balance and lat isolation.' },
+      { name:'Tonal: Face Pulls', sets:3, reps:'15', notes:'Light weight. Extra set added this phase.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Mandatory from week 3.' },
     ],
     dl: [
-      { name:'Negative Pull-ups', sets:2, reps:'3 reps, controlled', notes:'Easy. No grinding. Well within capacity.' },
-      { name:'Lat Pulldown', sets:2, reps:'10', notes:'Light weight. Flush, don\'t fatigue.' },
-      { name:'Face Pulls', sets:2, reps:'12', notes:'Light weight.' },
+      { name:'Negative Pull-ups', sets:2, reps:'3 reps, controlled', notes:'No grinding. Easy and well within capacity.' },
+      { name:'Tonal: Lat Pulldown', sets:2, reps:'10', notes:'Light weight. Flush, don\'t fatigue.' },
+      { name:'Tonal: Face Pulls', sets:2, reps:'12', notes:'Light weight.' },
       { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'Skip if fatigued.' },
     ],
     p3: [
-      { name:'Pull-ups (strict)', sets:4, reps:'Max reps', notes:'PRIMARY. Should be hitting 3–6+ reps per set by now. Dead hang start.' },
-      { name:'Negative Pull-ups', sets:3, reps:'4 reps, 8 sec descent', notes:'Supplementary to the strict sets. Maintains eccentric strength.' },
-      { name:'Lat Pulldown', sets:3, reps:'10–12', notes:'Heavy.' },
-      { name:'Bent-Over Row', sets:3, reps:'10', notes:'Control the descent.' },
-      { name:'Face Pulls', sets:2, reps:'15', notes:'Light weight.' },
+      { name:'Pull-ups (strict)', sets:4, reps:'Max reps', notes:'PRIMARY. Should be hitting 3–6+ reps per set by now. Full dead hang start.' },
+      { name:'Negative Pull-ups', sets:3, reps:'4 reps, 8 sec descent', notes:'Supplementary. Maintains eccentric strength gains.' },
+      { name:'Tonal: Lat Pulldown', sets:4, reps:'10–12', notes:'Heavy. Progressive load continues.' },
+      { name:'Tonal: Seated Cable Row', sets:4, reps:'10–12', notes:'Heavy, controlled return.' },
+      { name:'Tonal: Straight Arm Pulldown', sets:3, reps:'12', notes:'Arms nearly straight.' },
+      { name:'Tonal: Single Arm Row', sets:3, reps:'10/side', notes:'Elbow drives behind torso.' },
+      { name:'Tonal: Face Pulls', sets:3, reps:'15', notes:'Light weight.' },
+      { name:'Tonal: Cable Bicep Curl', sets:3, reps:'12', notes:'NEW. Full range of motion. Biceps are the secondary mover in pull-ups — builds lockout strength.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     p4: [
-      { name:'Pull-ups (strict)', sets:5, reps:'Max reps', notes:'Aiming for 6–10 reps per set. Rest 3 min between sets.' },
+      { name:'Pull-ups (strict)', sets:5, reps:'Max reps — rest 3 min', notes:'Near true failure on final sets. Aiming for 6–10 reps per set.' },
       { name:'Negative Pull-ups', sets:2, reps:'4 reps, 8 sec descent', notes:'Supplementary only. Drop if fatigue is high.' },
-      { name:'Lat Pulldown', sets:3, reps:'10–12', notes:'Heavy.' },
-      { name:'Bent-Over Row', sets:3, reps:'10', notes:'Heavy, controlled.' },
-      { name:'Face Pulls', sets:2, reps:'15', notes:'Light weight.' },
+      { name:'Tonal: Lat Pulldown', sets:4, reps:'10–12', notes:'Heavy.' },
+      { name:'Tonal: Seated Cable Row', sets:3, reps:'10', notes:'Heavy, controlled.' },
+      { name:'Tonal: Straight Arm Pulldown', sets:3, reps:'12', notes:'Arms nearly straight.' },
+      { name:'Tonal: Single Arm Row', sets:3, reps:'10/side', notes:'Elbow drives behind torso.' },
+      { name:'Tonal: Face Pulls', sets:3, reps:'15', notes:'Light weight.' },
+      { name:'Tonal: Cable Bicep Curl', sets:3, reps:'12', notes:'Full range of motion.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     tp: [
@@ -1232,46 +1241,57 @@ const WORKOUTS = {
     ],
   },
 
-  // TUESDAY — Lower Body & Core
+  // TUESDAY — Lower Body & Core (Tonal + bodyweight)
   1: {
-    warmup: ['3 min light bike or walk','Hip circles — 10 each direction','Leg swings front/back and lateral — 10 each'],
+    warmup: ['3 min light bike or jog in place','Hip circles — 10 each direction','Leg swings front/back and lateral — 10 each'],
     cooldown: ['Pigeon pose — 60 sec/side','Seated hamstring stretch — 60 sec/side'],
     p1: [
       { name:'Bodyweight Squats', sets:4, reps:'25', notes:'Hip below knee, full lockout. Competition form every rep.' },
-      { name:'Goblet Squat', sets:3, reps:'12–15', notes:'Dumbbell at chest. Moderate weight. Reinforces upright torso and depth.' },
+      { name:'Tonal: Goblet Squat', sets:3, reps:'12–15', notes:'Handles at chest height. Moderate weight. Reinforces upright torso and depth.' },
+      { name:'Tonal: Romanian Deadlift', sets:3, reps:'10', notes:'NEW. Control the descent — feel the hamstring stretch. Builds sprint power and run economy.' },
       { name:'Sit-ups', sets:4, reps:'Max reps, stop 2 short', notes:'Shoulders touch floor, elbows touch thighs. Exact competition form.' },
+      { name:'Tonal: Pallof Press', sets:2, reps:'10/side', notes:'NEW. Cable at chest height, press out and hold 1 sec. Anti-rotation core stability.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Heels stay off floor. Hip flexor endurance — first to fail in long sit-up sets.' },
-      { name:'Easy Mile Run', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Weeks 1–2: optional. Week 3: mandatory.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Conversational pace. Weeks 1–2: optional. Week 3: mandatory.' },
     ],
     p2: [
       { name:'Bodyweight Squats', sets:5, reps:'30', notes:'Competition form throughout.' },
-      { name:'Goblet Squat', sets:3, reps:'12–15', notes:'Heavier than Phase 1. Increase load each session.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'12–15', notes:'Heavier than Phase 1. Increase load each session.' },
+      { name:'Tonal: Romanian Deadlift', sets:4, reps:'10', notes:'Heavier than Phase 1. Control descent.' },
+      { name:'Tonal: Reverse Lunge', sets:3, reps:'10/side', notes:'NEW. Handles at sides. Knee hovers near floor. Single-leg strength and balance.' },
       { name:'Sit-ups', sets:5, reps:'Max reps', notes:'Push closer to failure than Phase 1.' },
+      { name:'Tonal: Pallof Press', sets:3, reps:'10/side', notes:'Full arm extension. One more set than Phase 1.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Heels stay off floor.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Mandatory from week 3.' },
     ],
     dl: [
-      { name:'Bodyweight Squats', sets:3, reps:'20', notes:'Easy and controlled. No grinding.' },
-      { name:'Goblet Squat', sets:2, reps:'12', notes:'Light weight.' },
+      { name:'Bodyweight Squats', sets:3, reps:'20', notes:'Easy and controlled.' },
+      { name:'Tonal: Goblet Squat', sets:2, reps:'12', notes:'Light weight. Flush, don\'t fatigue.' },
       { name:'Sit-ups', sets:3, reps:'15 (submaximal)', notes:'Well within capacity.' },
       { name:'Leg Raises', sets:2, reps:'12', notes:'Easy.' },
       { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
     ],
     p3: [
-      { name:'Bodyweight Squats', sets:5, reps:'40', notes:'Highest rep count so far. Full form required.' },
-      { name:'Goblet Squat', sets:3, reps:'15', notes:'Heavy. Heavier than Phase 2.' },
-      { name:'Bulgarian Split Squat', sets:3, reps:'10/side', notes:'REINTRODUCED. Bodyweight or light DB. Rear foot on bench, front shin vertical.' },
+      { name:'Bodyweight Squats', sets:5, reps:'40', notes:'Highest competition-form rep count so far.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'15', notes:'Heavy. Heavier than Phase 2.' },
+      { name:'Tonal: Romanian Deadlift', sets:4, reps:'10–12', notes:'Heavy. Increase load progressively.' },
+      { name:'Tonal: Reverse Lunge', sets:3, reps:'12/side', notes:'Heavier than Phase 2.' },
+      { name:'Bulgarian Split Squat', sets:3, reps:'10/side', notes:'REINTRODUCED. Bodyweight or hold band. Rear foot on couch/box. Front shin stays vertical.' },
       { name:'Sit-ups', sets:5, reps:'Max reps', notes:'' },
-      { name:'Weighted Sit-ups', sets:3, reps:'12', notes:'NEW. Light plate on chest. Overloads the movement.' },
+      { name:'Weighted Sit-ups (vest)', sets:3, reps:'12', notes:'NEW. Weighted vest for overload. Makes bodyweight feel easy.' },
+      { name:'Tonal: Pallof Press', sets:3, reps:'10/side', notes:'Full arm extension.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Slow and controlled.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     p4: [
       { name:'Bodyweight Squats', sets:5, reps:'45–50', notes:'Near competition max effort.' },
-      { name:'Goblet Squat', sets:4, reps:'15', notes:'Heavy.' },
-      { name:'Bulgarian Split Squat', sets:4, reps:'10–12/side', notes:'Dumbbell. More volume than Phase 3.' },
-      { name:'Sit-ups', sets:6, reps:'Max reps, near failure', notes:'Highest sit-up volume of the program on Tuesdays.' },
-      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'Heavier plate.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'15', notes:'Heavy.' },
+      { name:'Tonal: Romanian Deadlift', sets:4, reps:'12', notes:'Heavy.' },
+      { name:'Tonal: Reverse Lunge', sets:4, reps:'10/side', notes:'Heavy.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'10–12/side', notes:'Hold band for load. More volume than Phase 3.' },
+      { name:'Sit-ups', sets:6, reps:'Max reps, near failure', notes:'Highest sit-up volume on Tuesdays.' },
+      { name:'Weighted Sit-ups (vest)', sets:3, reps:'15', notes:'Vest on chest.' },
+      { name:'Tonal: Pallof Press', sets:3, reps:'10/side', notes:'Full arm extension.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Slow.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
@@ -1282,14 +1302,14 @@ const WORKOUTS = {
     ],
   },
 
-  // WEDNESDAY — Long Run
+  // WEDNESDAY — Long Run (outdoors only)
   2: {
-    warmup: ['3 min walk','Dynamic leg swings — 10 each direction','Easy 3 min jog to settle into pace'],
-    cooldown: ['5 min walk — mandatory','Calf stretch — 60 sec/side'],
+    warmup: ['3 min walk','Leg swings — 10 each direction','Easy 3 min jog to settle into pace'],
+    cooldown: ['5 min walk — mandatory','Standing calf stretch — 60 sec/side'],
     p1: [
-      { name:'Easy Continuous Run', sets:1, reps:'20 min', notes:'Conversational pace. Same route each time — track progress.' },
+      { name:'Easy Continuous Run', sets:1, reps:'20 min', notes:'Conversational pace. Same route each time — track your progress.' },
       { name:'1.5-Mile Time Trial', sets:1, reps:'Day 14 only', notes:'Baseline measurement. Not a training session. Go on fresh legs.' },
-      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run. Comfortable fast running. Not a sprint. Teaches leg turnover.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run. Comfortable fast running — not a sprint. Teaches leg turnover.' },
     ],
     p2: [
       { name:'Easy Continuous Run', sets:1, reps:'25–28 min', notes:'Conversational pace throughout.' },
@@ -1311,40 +1331,43 @@ const WORKOUTS = {
       { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
     ],
     tp: [
-      { name:'Easy Jog', sets:1, reps:'20 min — very easy', notes:'No effort. Pure flush and recovery.' },
-      { name:'Final 1.5-Mile Trial', sets:1, reps:'Day 57', notes:'Final pre-competition measurement.' },
+      { name:'Easy Jog', sets:1, reps:'20 min — very easy', notes:'No effort. Pure flush.' },
     ],
   },
 
   // THURSDAY — REST (handled separately in renderWorkout)
   3: null,
 
-  // FRIDAY — Sprint Work & Power
+  // FRIDAY — Sprint Work & Power (outdoors only)
   4: {
-    warmup: ['5 min easy jog','High knees — 1×20m','A-skips — 1×20m','2 build-up strides at 75% effort'],
+    warmup: ['5 min easy jog','High knees — 1×20m','A-skips — 1×20m','2–3 build-up strides at 75% effort'],
     cooldown: ['5 min easy walk — mandatory','Quad stretch — 60 sec/side','Hip flexor lunge stretch — 60 sec/side'],
     p1: [
-      { name:'100m Sprint Intervals', sets:6, reps:'Full effort', notes:'3–4 min full recovery between. Quality over quantity.' },
-      { name:'200m Sprint Intervals', sets:3, reps:'85% effort', notes:'3 min recovery. Bridges gap toward 300m.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Flushes lactate. Weeks 1–2: optional. Week 3: mandatory.' },
+      { name:'100m Sprint Intervals', sets:6, reps:'Full effort', notes:'3–4 min full recovery between reps. Quality over quantity.' },
+      { name:'200m Sprint Intervals', sets:3, reps:'85% effort', notes:'3 min recovery. Bridges gap to 300m distance.' },
+      { name:'Broad Jumps', sets:3, reps:'5', notes:'NEW. Two-foot takeoff, land balanced. Max horizontal distance. Loads sprint drive directly. No equipment.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Conversational pace. Weeks 1–2: optional. Week 3: mandatory.' },
     ],
     p2: [
       { name:'100m Sprint Intervals', sets:8, reps:'Full effort', notes:'Full recovery. 2 more reps than Phase 1.' },
       { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'3 min recovery.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Mandatory from week 3.' },
+      { name:'Broad Jumps', sets:4, reps:'5', notes:'One more set than Phase 1. Max horizontal distance.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     dl: [
-      { name:'100m Light Strides', sets:4, reps:'70% effort only', notes:'Comfortable and controlled. Not a real sprint session.' },
+      { name:'100m Light Strides', sets:4, reps:'70% effort only', notes:'Comfortable and controlled. Not a sprint session.' },
       { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
     ],
     p3: [
       { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'Warm-up for 300m work. 3 min recovery.' },
       { name:'300m Race-Pace Efforts', sets:3, reps:'Full race pace', notes:"NEW. 5 min full recovery between. Don't go out too fast in the first 100m." },
+      { name:'Broad Jumps', sets:3, reps:'5', notes:'Max horizontal distance.' },
       { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     p4: [
       { name:'200m Warm-Up Efforts', sets:2, reps:'80% effort', notes:'Primer only. Not the main event.' },
-      { name:'300m Race-Pace Efforts', sets:4, reps:'Full race pace', notes:'5 min full recovery. This is the key session.' },
+      { name:'300m Race-Pace Efforts', sets:4, reps:'Full race pace', notes:'5 min full recovery. This is the key session of the week.' },
+      { name:'Broad Jumps', sets:3, reps:'5', notes:'Max horizontal distance.' },
       { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     tp: [
@@ -1354,44 +1377,52 @@ const WORKOUTS = {
     ],
   },
 
-  // SATURDAY — Push — Chest & Shoulders
+  // SATURDAY — Push — Chest & Shoulders (Tonal + vest)
   5: {
-    warmup: ['Band pull-aparts — 2×12','Slow push-up warm-up — 2×8','Wrist and shoulder circles — 60 sec'],
-    cooldown: ['Doorway chest stretch — 60 sec','Cross-body shoulder stretch — 30 sec/side'],
+    warmup: ['Tonal: Face pulls 2×12 (light — shoulder activation)','Arm and shoulder circles — 60 sec','Slow push-up warm-up — 2×8'],
+    cooldown: ['Doorway or wall chest stretch — 60 sec','Cross-body shoulder stretch — 30 sec/side'],
     p1: [
       { name:'Push-ups (strict)', sets:4, reps:'Max reps, stop 2 short', notes:'Full lockout, chest to fist height, rigid body. Competition form.' },
-      { name:'Dumbbell Bench Press', sets:3, reps:'8–10', notes:'Lower 2–3 sec. Raw pressing strength. Moderate weight.' },
-      { name:'Dumbbell Shoulder Press', sets:2, reps:'10–12', notes:'Brace core throughout. Stabilises lockout under fatigue.' },
-      { name:'Tricep Dips (bench)', sets:2, reps:'12', notes:'Back close to bench. Triceps fail first in push-ups.' },
+      { name:'Tonal: Chest Press', sets:3, reps:'8–10', notes:'Lower 2–3 sec. Constant cable tension throughout. Better than dumbbell for chest activation.' },
+      { name:'Tonal: Cable Fly', sets:2, reps:'12', notes:'NEW. Wide arc, slight bend at elbow. Chest isolation and stretch. Builds pectoral hypertrophy.' },
+      { name:'Tonal: Shoulder Press', sets:2, reps:'10–12', notes:'Brace core throughout. Overhead press — stabilises push-up lockout.' },
+      { name:'Tonal: Lateral Raise', sets:2, reps:'12', notes:'NEW. Arms to shoulder height. Medial delt development and shoulder health.' },
+      { name:'Tonal: Tricep Pushdown', sets:2, reps:'12', notes:'NEW. Rope or bar. Full extension at bottom. More isolated than bench dips.' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile (optional Wks 1–2)', notes:'Weeks 1–2: optional. Week 3: mandatory.' },
     ],
     p2: [
-      { name:'Push-ups (strict)', sets:5, reps:'Max reps', notes:'Further into failure than Phase 1.' },
-      { name:'Dumbbell Bench Press', sets:4, reps:'8–10', notes:'Heavier than Phase 1. Progressive overload.' },
-      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
-      { name:'Tricep Dips (bench)', sets:2, reps:'12–15', notes:'Add weight on thighs if easy.' },
+      { name:'Push-ups (strict)', sets:5, reps:'Max reps', notes:'Push further than Phase 1.' },
+      { name:'Tonal: Chest Press', sets:4, reps:'8–10', notes:'Heavier than Phase 1. Progressive overload each session.' },
+      { name:'Tonal: Cable Fly', sets:3, reps:'12', notes:'Wide arc.' },
+      { name:'Tonal: Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tonal: Lateral Raise', sets:3, reps:'12', notes:'' },
+      { name:'Tonal: Tricep Pushdown', sets:3, reps:'12–15', notes:'' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     dl: [
-      { name:'Push-ups (strict)', sets:3, reps:'Submaximal — stop well short', notes:'Easy reps. No grinding.' },
-      { name:'Dumbbell Bench Press', sets:2, reps:'10', notes:"Light weight. Flush, don't fatigue." },
-      { name:'Dumbbell Shoulder Press', sets:2, reps:'10', notes:'Light weight.' },
+      { name:'Push-ups (strict)', sets:3, reps:'Submaximal — stop early', notes:'No grinding. Easy reps only.' },
+      { name:'Tonal: Chest Press', sets:2, reps:'10', notes:'Light weight. Flush, don\'t fatigue.' },
+      { name:'Tonal: Shoulder Press', sets:2, reps:'10', notes:'Light weight.' },
       { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
     ],
     p3: [
       { name:'Push-ups (strict)', sets:5, reps:'Max reps', notes:'' },
-      { name:'Weighted Push-ups', sets:3, reps:'10–12', notes:'NEW. Plate on upper back. Start with 10–25 lb. Partner places plate.' },
-      { name:'Dumbbell Bench Press', sets:4, reps:'8–10', notes:'Heavier than Phase 2.' },
-      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
-      { name:'Tricep Dips (bench)', sets:3, reps:'12–15', notes:'Weighted.' },
+      { name:'Weighted Push-ups (vest)', sets:3, reps:'10–12', notes:'NEW. Vest on back. Start at lightest setting. Makes bodyweight push-ups feel easy.' },
+      { name:'Tonal: Chest Press', sets:4, reps:'8–10', notes:'Heavier than Phase 2.' },
+      { name:'Tonal: Cable Fly', sets:3, reps:'12', notes:'Wide arc.' },
+      { name:'Tonal: Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tonal: Lateral Raise', sets:3, reps:'12', notes:'' },
+      { name:'Tonal: Tricep Pushdown', sets:3, reps:'12', notes:'' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     p4: [
       { name:'Push-ups (strict)', sets:6, reps:'Max reps, near failure', notes:'Highest push-up volume of the program.' },
-      { name:'Weighted Push-ups', sets:3, reps:'10–12', notes:'Same or heavier plate.' },
-      { name:'Dumbbell Bench Press', sets:4, reps:'6–8', notes:'Heavy — lower reps. Strength focus.' },
-      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
-      { name:'Tricep Dips (bench)', sets:3, reps:'15', notes:'Weighted.' },
+      { name:'Weighted Push-ups (vest)', sets:3, reps:'10–12', notes:'Same or heavier vest setting.' },
+      { name:'Tonal: Chest Press', sets:4, reps:'6–8', notes:'Heavy — lower reps. Strength focus, not hypertrophy reps.' },
+      { name:'Tonal: Cable Fly', sets:3, reps:'12', notes:'Wide arc.' },
+      { name:'Tonal: Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tonal: Lateral Raise', sets:3, reps:'15', notes:'' },
+      { name:'Tonal: Tricep Pushdown', sets:3, reps:'12–15', notes:'' },
       { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
     ],
     tp: [
@@ -1400,75 +1431,86 @@ const WORKOUTS = {
     ],
   },
 
-  // SUNDAY — Legs, Core & Conditioning
+  // SUNDAY — Legs, Core & Conditioning (Tonal + bodyweight + vest + outdoor)
   6: {
-    warmup: ['5 min easy bike or light jog','Hip circles — 10 each direction','Bodyweight squat — 2×10 (slow)','Glute bridges — 2×12'],
+    warmup: ['5 min light jog or jumping jacks','Hip circles — 10 each direction','Bodyweight squat — 2×10 (slow)','Tonal: Glute bridge — 2×12 (cable at hip level)'],
     cooldown: ['5 min walk — mandatory','Pigeon pose — 60 sec/side','Hamstring stretch — 60 sec/side'],
     p1: [
       { name:'Bodyweight Squats', sets:5, reps:'30', notes:'Most squat volume of the week. Competition form throughout.' },
-      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavier than Tuesday. Full depth. Rest 90 sec between sets.' },
-      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension at top. Explosive power. Trained here only — removed from Fridays.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'12–15', notes:'Heavier than Tuesday. Rest 90 sec between sets.' },
+      { name:'Tonal: Hip Thrust', sets:3, reps:'12', notes:'NEW. Upper back on couch/bench, low cable at hips. Full hip extension at top. Glute power = sprint speed.' },
+      { name:'Broad Jumps', sets:4, reps:'6', notes:'Explosive horizontal power. Outdoors or flat surface. Max horizontal distance.' },
       { name:'Sit-ups', sets:5, reps:'Max reps, stop early', notes:'Most sit-up volume of the week.' },
+      { name:'Tonal: Cable Crunch', sets:2, reps:'15', notes:'NEW. Rope at top of Tonal. Round the back fully. Adds direct resistance to the sit-up motion.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Heels stay off floor.' },
-      { name:'Plank Holds', sets:2, reps:'60 sec each', notes:'Full-body bracing.' },
+      { name:'Plank', sets:2, reps:'60 sec each', notes:'Full-body bracing.' },
       { name:'Fatigue Run', sets:1, reps:'1 mile easy', notes:'After all work. Intentional fatigue — competition simulation.' },
     ],
     p2: [
       { name:'Bodyweight Squats', sets:6, reps:'35', notes:'5 more reps than Phase 1.' },
-      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavier than Phase 1.' },
-      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'12–15', notes:'Heavier than Phase 1.' },
+      { name:'Tonal: Hip Thrust', sets:4, reps:'12', notes:'Full hip extension. One more set than Phase 1.' },
+      { name:'Tonal: Romanian Deadlift', sets:3, reps:'10', notes:'NEW. Control the descent. Builds run economy and sprint power.' },
+      { name:'Broad Jumps', sets:4, reps:'8', notes:'2 more reps per set than Phase 1.' },
       { name:'Sit-ups', sets:6, reps:'Max reps', notes:'One more set than Phase 1.' },
+      { name:'Tonal: Cable Crunch', sets:3, reps:'15', notes:'Round fully. One more set than Phase 1.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'' },
-      { name:'Plank Holds', sets:2, reps:'60 sec each', notes:'' },
+      { name:'Plank', sets:2, reps:'60 sec each', notes:'' },
       { name:'Fatigue Run', sets:1, reps:'1 mile easy', notes:'Easy pace.' },
     ],
     dl: [
       { name:'Bodyweight Squats', sets:3, reps:'20', notes:'Easy and controlled.' },
-      { name:'Goblet Squat', sets:3, reps:'12', notes:'Light weight.' },
+      { name:'Tonal: Goblet Squat', sets:3, reps:'12', notes:'Light weight.' },
       { name:'Sit-ups', sets:3, reps:'15 (submaximal)', notes:'' },
       { name:'Leg Raises', sets:2, reps:'12', notes:'' },
-      { name:'Plank Holds', sets:2, reps:'45 sec each', notes:'' },
-      { name:'Mobility Work', sets:1, reps:'15 min', notes:'Hip flexors and hamstrings. Replaces fatigue run this week.' },
+      { name:'Plank', sets:2, reps:'45 sec each', notes:'' },
+      { name:'Mobility Work', sets:1, reps:'15 min', notes:'Hip flexors + hamstrings. Extended pigeon pose, couch stretch, hamstring work. Replaces fatigue run.' },
     ],
     p3: [
       { name:'Bodyweight Squats', sets:6, reps:'45', notes:'Highest bodyweight squat count so far.' },
-      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavy. Heavier than Phase 2.' },
-      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'12–15', notes:'Heavy.' },
+      { name:'Tonal: Hip Thrust', sets:4, reps:'15', notes:'Full hip extension.' },
+      { name:'Tonal: Romanian Deadlift', sets:4, reps:'12', notes:'Heavier than Phase 2.' },
+      { name:'Broad Jumps', sets:4, reps:'8', notes:'Max horizontal distance.' },
       { name:'Sit-ups', sets:6, reps:'Max reps', notes:'' },
-      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'NEW. Light plate on chest. Overloads the movement.' },
+      { name:'Weighted Sit-ups (vest)', sets:3, reps:'15', notes:'NEW. Vest on chest. Direct overload on the sit-up movement.' },
+      { name:'Tonal: Cable Crunch', sets:3, reps:'15', notes:'Round fully.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'Slow and controlled.' },
-      { name:'Plank Holds', sets:2, reps:'60 sec each', notes:'' },
+      { name:'Plank', sets:2, reps:'60 sec each', notes:'' },
       { name:'Fatigue Run', sets:1, reps:'1.5 miles easy', notes:'Extended from Phases 1–2.' },
     ],
     p4: [
-      { name:'Bodyweight Squats', sets:7, reps:'50', notes:'Peak squat volume. Full form throughout.' },
-      { name:'Goblet Squat (heavy)', sets:4, reps:'15', notes:'Heavy.' },
-      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Bodyweight Squats', sets:7, reps:'50', notes:'Peak squat volume. Full form required throughout.' },
+      { name:'Tonal: Goblet Squat', sets:4, reps:'15', notes:'Heavy.' },
+      { name:'Tonal: Hip Thrust', sets:4, reps:'15', notes:'Full hip extension.' },
+      { name:'Tonal: Romanian Deadlift', sets:4, reps:'12', notes:'Heavy.' },
+      { name:'Broad Jumps', sets:4, reps:'8', notes:'Max horizontal distance.' },
       { name:'Sit-ups', sets:7, reps:'Max reps, near failure', notes:'Peak sit-up volume of the entire program.' },
-      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'Heavier plate.' },
+      { name:'Weighted Sit-ups (vest)', sets:3, reps:'15', notes:'Vest on chest.' },
+      { name:'Tonal: Cable Crunch', sets:3, reps:'15', notes:'Round fully.' },
       { name:'Leg Raises', sets:2, reps:'15', notes:'' },
-      { name:'Plank Holds', sets:2, reps:'60 sec each', notes:'' },
+      { name:'Plank', sets:2, reps:'60 sec each', notes:'' },
       { name:'Fatigue Run', sets:1, reps:'1.5–2 miles easy', notes:'Longest fatigue run of the program.' },
     ],
     tp: [
       { name:'Bodyweight Squats', sets:3, reps:'25', notes:'Crisp competition-form reps.' },
       { name:'Sit-ups', sets:3, reps:"Max reps — don't grind", notes:'' },
-      { name:'Plank Holds', sets:2, reps:'45 sec each', notes:'' },
+      { name:'Plank', sets:2, reps:'45 sec each', notes:'' },
     ],
   },
 };
 
 const SCHEDULE = [
-  { week:1,  phase:'Phase 1', pullups:'5×neg+3×band', pushups:'4×max', squats:'4×25', sprints:'6×100+3×200', run:'20 min', note:'Time trial Day 14' },
-  { week:2,  phase:'Phase 1', pullups:'5×neg+3×band', pushups:'4×max', squats:'4×25', sprints:'6×100+3×200', run:'20 min+trial', note:'' },
-  { week:3,  phase:'Phase 2', pullups:'6×neg+4×band', pushups:'5×max', squats:'5×30', sprints:'8×100+4×200', run:'25 min', note:'Easy mile mandatory' },
-  { week:4,  phase:'Phase 2', pullups:'6×neg+4×band', pushups:'5×max', squats:'5×30', sprints:'8×100+4×200', run:'28 min', note:'' },
-  { week:5,  phase:'DELOAD',  pullups:'2×sub', pushups:'3×sub', squats:'3×20', sprints:'4×100 easy', run:'15 min', note:'Trial Day 35' },
-  { week:6,  phase:'Phase 3', pullups:'4×strict+3×neg', pushups:'5×max+wt', squats:'5×40', sprints:'4×200+3×300', run:'30+tempo', note:'Weighted work begins' },
-  { week:7,  phase:'Phase 3', pullups:'4×strict+3×neg', pushups:'5×max+wt', squats:'5×40', sprints:'4×200+3×300', run:'30+tempo', note:'' },
-  { week:8,  phase:'Phase 4', pullups:'5×strict+2×neg', pushups:'6×max+wt', squats:'5×45–50', sprints:'2×200+4×300', run:'35+tempo', note:'Trial Day 56' },
-  { week:9,  phase:'Phase 4', pullups:'5×strict+2×neg', pushups:'6×max+wt', squats:'5×45–50', sprints:'2×200+4×300', run:'35+tempo', note:'' },
-  { week:10, phase:'Taper',   pullups:'3×strict', pushups:'3×max', squats:'3×25', sprints:'3×100+1×300', run:'20 min', note:'Final trial Day 57' },
+  { week:1,  phase:'Phase 1', pullups:'5×neg+3×band', pushups:'4×max', squats:'5×30 (Sun)', sprints:'6×100+3×200', run:'20 min', note:'Time trial Day 14' },
+  { week:2,  phase:'Phase 1', pullups:'5×neg+3×band', pushups:'4×max', squats:'5×30 (Sun)', sprints:'6×100+3×200', run:'20 min+trial', note:'' },
+  { week:3,  phase:'Phase 2', pullups:'6×neg+4×band', pushups:'5×max', squats:'6×35 (Sun)', sprints:'8×100+4×200', run:'25 min', note:'Easy mile mandatory' },
+  { week:4,  phase:'Phase 2', pullups:'6×neg+4×band', pushups:'5×max', squats:'6×35 (Sun)', sprints:'8×100+4×200', run:'28 min', note:'' },
+  { week:5,  phase:'DELOAD',  pullups:'2×sub', pushups:'3×sub', squats:'3×20 (Sun)', sprints:'4×100 easy', run:'15 min', note:'Trial Day 35' },
+  { week:6,  phase:'Phase 3', pullups:'4×strict+3×neg', pushups:'5×max+vest', squats:'6×45 (Sun)', sprints:'4×200+3×300', run:'30+tempo', note:'Vest + Tonal program begins' },
+  { week:7,  phase:'Phase 3', pullups:'4×strict+3×neg', pushups:'5×max+vest', squats:'6×45 (Sun)', sprints:'4×200+3×300', run:'30+tempo', note:'' },
+  { week:8,  phase:'Phase 4', pullups:'5×strict+2×neg', pushups:'6×max+vest', squats:'7×50 (Sun)', sprints:'2×200+4×300', run:'35+tempo', note:'Trial Day 56' },
+  { week:9,  phase:'Phase 4', pullups:'5×strict+2×neg', pushups:'6×max+vest', squats:'7×50 (Sun)', sprints:'2×200+4×300', run:'35+tempo', note:'' },
+  { week:10, phase:'Taper',   pullups:'3×strict', pushups:'3×max', squats:'3×25 (Sun)', sprints:'3×100+1×300', run:'20 min', note:'Final trial Day 57' },
 ];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -2510,12 +2552,12 @@ function getRunType(name) {
 }
 
 function isWeightedExercise(name) {
-  const keywords   = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable','Face Pull','Tricep Dips','Bulgarian Split Squat','Box Jump','Tricep'];
-  const bodyweight = ['Bodyweight Squat','Sit-up','Leg Raise','Plank','Pull-ups (strict)','Push-ups (strict)','Dead Hang','Easy','Fatigue','Jog','Run','Sprint','Stride','High Knee','Butt Kick','Mobility'];
+  const bodyweight = ['Bodyweight Squat','Sit-up','Leg Raise','Plank','Pull-ups (strict)','Push-ups (strict)','Dead Hang','Easy','Fatigue','Jog','Run','Sprint','Stride','High Knee','Butt Kick','Mobility','Broad Jump','Bulgarian Split Squat'];
   if (bodyweight.some(k => name.includes(k))) return false;
-  // These need weight tracking for band/assist resistance
+  if (name.startsWith('Tonal:')) return true;
   if (name.includes('Negative Pull') || name.includes('Band-Assisted')) return true;
-  return keywords.some(k => name.includes(k));
+  if (name.includes('Weighted')) return true;
+  return false;
 }
 
 // ─── REST TIMER ──────────────────────────────────────────────────────────────
